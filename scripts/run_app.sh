@@ -5,4 +5,9 @@ if [[ ! -x "$(which go)" ]]; then
     exit 1
 fi
 
-go run cmd/selector/main.go
+if [[ ! -x "$(which jq)" ]]; then
+  go run cmd/selector/main.go "$@"
+    exit 0
+fi
+
+go run cmd/selector/main.go "$@" | jq '.'

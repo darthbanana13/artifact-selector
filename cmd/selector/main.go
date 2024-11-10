@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
   "os"
 
   "github.com/darthbanana13/artifact-selector/pkg/log"
+  "github.com/darthbanana13/artifact-selector/pkg/github"
 
   "github.com/urfave/cli/v2"
 )
@@ -32,8 +32,8 @@ func main() {
         Usage: "Specify the taget architecture for the binary. E.g. amd64, arm64, x86",
       },
     },
-    Action: func(*cli.Context) error {
-      fmt.Println("Sorting artifacts...")
+    Action: func(ctx *cli.Context) error {
+      github.FetchArtifacts(ctx.String("github"))
       return nil
     },
   }
