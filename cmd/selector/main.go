@@ -2,13 +2,16 @@ package main
 
 import (
 	"fmt"
-  "log"
   "os"
+
+  "github.com/darthbanana13/artifact-selector/pkg/log"
 
   "github.com/urfave/cli/v2"
 )
 
 func main() {
+  // TODO: Handle different log-level
+  logger := log.InitLog("dev")
   app := &cli.App{
     Name: "Artifact finder",
     Usage: "Use this utility to find the best artifact according to your specifications",
@@ -36,6 +39,6 @@ func main() {
   }
 
   if err := app.Run(os.Args); err != nil {
-    log.Fatal(err)
+    logger.Fatal(err.Error())
   }
 }
