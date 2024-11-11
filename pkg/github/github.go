@@ -25,35 +25,47 @@ type Artifact struct {
   DownloadLink  string  `json:"browser_download_url"`
 }
 
-func FetchArtifacts(userRepo string) error {
+func FetchArtifacts(userRepo string) (ReleasesInfo, error) {
   if err := TestValidRepoName(userRepo); err != nil {
-    return err
+    return ReleasesInfo{}, err
   }
 
-  url := fmt.Sprintf(LatestReleases, userRepo)
+  body, err := GetUrlBody(fmt.Sprintf(LatestReleases, userRepo))
+  if err != nil {
+    return ReleasesInfo{}, err
+  }
+
+  return PraseJson(body)
+}
+
+func PraseJson(body []byte) (ReleasesInfo, error) {
+  var info ReleasesInfo
+  if err := json.Unmarshal(body, &info); err != nil {
+    return info, fmt.Errorf("Could not parse Github API reponse. Has the API changed?")
+  }
+  return info, nil
+}
+
+func GetUrlBody(url string) ([]byte, error) {
   resp, err := http.Get(url)
   if err != nil {
-    return err
+    return nil, err
   }
   defer resp.Body.Close()
 
   if resp.StatusCode != http.StatusOK {
-    return fmt.Errorf("Expected HTTP Response Code %v when fetching %v, got code %v instead.", http.StatusOK, url, resp.StatusCode)
+    return nil, fmt.Errorf("Expected HTTP Response Code %v when fetching %v, got code %v instead.", http.StatusOK, url, resp.StatusCode)
   }
 
-  body, err := io.ReadAll(resp.Body)
+  return FetchBody(resp.Body)
+}
+
+func FetchBody(r io.Reader) ([]byte, error) {
+  body, err := io.ReadAll(r)
   if err != nil {
-    return err
+    return nil, err
   }
-
-  var info ReleasesInfo
-  if err := json.Unmarshal(body, &info); err != nil {
-    return fmt.Errorf("Could not parse Github API reponse for %v. Has the API changed?", url)
-  }
-  minfo, _ := json.Marshal(info)
-  fmt.Println(string(minfo))
-
-  return nil
+  return body, nil
 }
 
 func TestValidRepoName(userRepo string) error {

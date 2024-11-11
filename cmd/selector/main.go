@@ -1,6 +1,8 @@
 package main
 
 import (
+  "encoding/json"
+  "fmt"
   "os"
 
   "github.com/darthbanana13/artifact-selector/pkg/log"
@@ -33,8 +35,10 @@ func main() {
       },
     },
     Action: func(ctx *cli.Context) error {
-      github.FetchArtifacts(ctx.String("github"))
-      return nil
+      info, err := github.FetchArtifacts(ctx.String("github"))
+      minfo, _ := json.Marshal(info)
+      fmt.Println(string(minfo))
+      return err
     },
   }
 
