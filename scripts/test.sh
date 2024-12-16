@@ -6,3 +6,5 @@ if [[ ! -x "$(which go)" ]]; then
 fi
 
 go test -v  github.com/darthbanana13/artifact-selector/pkg/log
+go test -v  github.com/darthbanana13/artifact-selector/pkg/github
+go test -v  github.com/darthbanana13/artifact-selector/pkg/glogdecorate

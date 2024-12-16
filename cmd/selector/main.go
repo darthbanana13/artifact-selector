@@ -3,10 +3,13 @@ package main
 import (
   "encoding/json"
   "fmt"
+  "net/http"
   "os"
+  "time"
 
   "github.com/darthbanana13/artifact-selector/pkg/log"
   "github.com/darthbanana13/artifact-selector/pkg/github"
+  "github.com/darthbanana13/artifact-selector/pkg/glogdecorate"
 
   "github.com/urfave/cli/v2"
 )
@@ -35,7 +38,12 @@ func main() {
       },
     },
     Action: func(ctx *cli.Context) error {
-      info, err := github.FetchArtifacts(ctx.String("github"))
+      fetcher := github.NewHttpFetcher(&http.Client{
+        Timeout: 10 * time.Second,
+      })
+      // info, err := fetcher.FetchArtifacts(ctx.String("github"))
+      fetcherD := glogdecorate.NewLogFetcherDecorator(&logger, fetcher)
+      info, err := fetcherD.FetchArtifacts(ctx.String("github"))
       minfo, _ := json.Marshal(info)
       fmt.Println(string(minfo))
       return err

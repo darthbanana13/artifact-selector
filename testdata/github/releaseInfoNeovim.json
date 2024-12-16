@@ -1,0 +1,105 @@
+{
+  "tag_name": "v0.10.2",
+  "prerelease": false,
+  "draft": false,
+  "assets": [
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604884",
+      "name": "nvim-linux64.tar.gz",
+      "content_type": "application/x-gtar",
+      "size": 11995741,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-linux64.tar.gz"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604886",
+      "name": "nvim-linux64.tar.gz.sha256sum",
+      "content_type": "application/octet-stream",
+      "size": 86,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-linux64.tar.gz.sha256sum"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604881",
+      "name": "nvim-macos-arm64.tar.gz",
+      "content_type": "application/x-gtar",
+      "size": 8796470,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-macos-arm64.tar.gz"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604883",
+      "name": "nvim-macos-arm64.tar.gz.sha256sum",
+      "content_type": "application/octet-stream",
+      "size": 90,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-macos-arm64.tar.gz.sha256sum"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604880",
+      "name": "nvim-macos-x86_64.tar.gz",
+      "content_type": "application/x-gtar",
+      "size": 9012188,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-macos-x86_64.tar.gz"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604882",
+      "name": "nvim-macos-x86_64.tar.gz.sha256sum",
+      "content_type": "application/octet-stream",
+      "size": 91,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-macos-x86_64.tar.gz.sha256sum"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604901",
+      "name": "nvim-win64.msi",
+      "content_type": "application/x-msi",
+      "size": 12613528,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-win64.msi"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604904",
+      "name": "nvim-win64.msi.sha256sum",
+      "content_type": "application/octet-stream",
+      "size": 81,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-win64.msi.sha256sum"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604906",
+      "name": "nvim-win64.zip",
+      "content_type": "application/zip",
+      "size": 12784586,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-win64.zip"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604905",
+      "name": "nvim-win64.zip.sha256sum",
+      "content_type": "application/octet-stream",
+      "size": 81,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim-win64.zip.sha256sum"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604887",
+      "name": "nvim.appimage",
+      "content_type": "application/vnd.appimage",
+      "size": 12125376,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim.appimage"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604888",
+      "name": "nvim.appimage.sha256sum",
+      "content_type": "application/octet-stream",
+      "size": 80,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim.appimage.sha256sum"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604896",
+      "name": "nvim.appimage.zsync",
+      "content_type": "application/octet-stream",
+      "size": 41644,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim.appimage.zsync"
+    },
+    {
+      "url": "https://api.github.com/repos/neovim/neovim/releases/assets/196604900",
+      "name": "nvim.appimage.zsync.sha256sum",
+      "content_type": "application/octet-stream",
+      "size": 86,
+      "browser_download_url": "https://github.com/neovim/neovim/releases/download/v0.10.2/nvim.appimage.zsync.sha256sum"
+    }
+  ]
+}
