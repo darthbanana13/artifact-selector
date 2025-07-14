@@ -38,7 +38,7 @@ func NewOSFilter(targetOS string) (*OSFilter, error) {
 }
 
 //TODO: Refactor to a smaller version
-//TODO: Should this filter also sort?
+//TODO: Should this filter also sort, 1st distro then os?
 func (of *OSFilter) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
 	var filteredArtifacts []github.Artifact
 	

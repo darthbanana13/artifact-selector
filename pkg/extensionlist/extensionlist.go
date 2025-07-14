@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	// "unicode"
 )
 
 type ExtensionList struct {
 	exts map[string]bool
 }
 
+// TODO: Embed file extension list into the binary
 func NewExtensionList() (*ExtensionList, error) {	
 	el := &ExtensionList{}
 	dat, err := os.ReadFile("pkg/extensionlist/extensionlist.txt")

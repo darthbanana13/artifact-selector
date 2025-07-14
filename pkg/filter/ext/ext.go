@@ -45,7 +45,7 @@ var ExtensionContentType = map[string][]string{
 	"apk":            {"application/vnd.android.package-archive"},
   "dmg":            {"application/x-apple-diskimage"},
   "pkg":            {"application/octet-stream"},
-  //TODO: Make a special value for this
+  //TODO: Make a special value for this called LINUXBINARY
 	"":               {"application/octet-stream"},
 }
 
@@ -59,6 +59,7 @@ func (ef *ExtFilter) SetNext(next handler.IFilterHandler) {
   ef.Next = next
 }
 
+// TODO: Handle errors for extensions with unknown content types
 func NewOSFilter(targetExts []string) (*ExtFilter, error) {
   el, err := extensionlist.NewExtensionList()
   return &ExtFilter{El: el, TargetExts: targetExts}, err

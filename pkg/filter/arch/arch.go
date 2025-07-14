@@ -7,7 +7,7 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
-var archMap = map[string][]string{
+var ArchMap = map[string][]string{
   "x86_64": {"x86_64", "amd64", "x64", "win64", "linux64"},
   "x86": {"x86", "i386", "386", "i486", "i586", "i686", "i786"},
   "arm64": {"arm64", "aarch64", "arm64v8l", "arm64v8", "aarch64"},
@@ -30,7 +30,7 @@ func (af *ArchFilter) SetNext(next handler.IFilterHandler) {
 }
 
 func (af *ArchFilter) SetTargetArch(targetArch string) error {
-  if _, ok := archMap[targetArch]; !ok {
+  if _, ok := ArchMap[targetArch]; !ok {
     return UnsupportedArchErr{Arch: targetArch}
   }
   af.TargetArch = targetArch
@@ -63,7 +63,7 @@ func (af *ArchFilter) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
 }
 
 func (af *ArchFilter) FilterExactMatch(artifact github.Artifact) bool {
-  for _, alias := range archMap[af.TargetArch] {
+  for _, alias := range ArchMap[af.TargetArch] {
     if strings.Contains(strings.ToLower(artifact.FileName), alias) {
       return true
     }
@@ -72,7 +72,7 @@ func (af *ArchFilter) FilterExactMatch(artifact github.Artifact) bool {
 }
 
 func (af *ArchFilter) DoesMatchOtherArch(artifact github.Artifact, besidesArch string) bool {
-  for arch, aliases := range archMap {
+  for arch, aliases := range ArchMap {
     if arch == besidesArch {
       continue
     }
