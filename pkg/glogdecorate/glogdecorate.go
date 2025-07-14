@@ -27,74 +27,82 @@ func NewLogFetcherDecorator(logger log.ILogger, fetcher github.IFetcher) *LogFet
 }
 
 func (d *LogFetcherDecorator) FetchArtifacts(userRepo string) (github.ReleasesInfo, error) {
-  d.l.Info(
-    fmt.Sprintf("Fetching artifacts for Github Repository %v", userRepo),
-  )
+  d.l.Info("fetching artifacts for Github repository", "user repo", userRepo)
   info, err := d.ft.FetchArtifacts(userRepo)
   if err != nil {
-    d.l.Error("Error when fetching the Github Artifacts")
+    d.l.Info("error when fetching the Github artifacts")
   }
   return info, err
 }
 
-func (d *LogFetcherDecorator) TestValidRepoName(userRepo string) error {
-  d.l.Debug(
-    fmt.Sprintf("Checking if repo name \"%v\" is valid", userRepo),
-  )
-  err := d.IFetcher.TestValidRepoName(userRepo)
+func (d *LogFetcherDecorator) MakeUrl(userRepo string, endpoint string) (string, error) {
+  url, err := d.IFetcher.MakeUrl(userRepo, endpoint)
   if err != nil {
-    d.l.Error(err.Error())
+    d.l.Info(err.Error())
   }
-  return err
+  d.l.Debug("artifact location", "URL", url)
+  return url, err
+}
+
+func PanicHandler(l log.ILogger) {
+  if r := recover(); r != nil {
+    l.Panic("panicked", r)
+  }
 }
 
 func (d *LogFetcherDecorator) PrepareRequest(url string) *http.Request {
-  d.l.Info(
-    fmt.Sprintf("Target URL is %v", url),
-  )
-
+  firstValue := true
+  firstHeader := true
   req := d.IFetcher.PrepareRequest(url)
+  defer PanicHandler(d.l)
 
   var builder strings.Builder
-  fmt.Fprintf(&builder, "Headers:")
   for name, values := range req.Header {
+    if firstHeader {
+      fmt.Fprintf(&builder, "%v: ", name)
+      firstHeader = false
+    } else {
+      fmt.Fprintf(&builder, ", %v: ", name)
+    }
+    firstValue = true
     for _, value := range values {
-      fmt.Fprintf(&builder, "\n%v: %v", name, value)
+      if firstValue {
+        fmt.Fprintf(&builder, "%v", value)
+        firstValue = false
+      } else {
+        fmt.Fprintf(&builder, ", %v", value)
+      }
     }
   }
 
-  d.l.Debug(builder.String())
-
+  d.l.Debug("added request headers", "headers", builder.String())
   return req
 }
 
-func (d *LogFetcherDecorator) GetUrlBody(req *http.Request, reader github.BodyReader) ([]byte, error) {
-  d.l.Debug("Making GET request")
-  resp, err := d.IFetcher.GetUrlBody(req, d.ReadBody)
+func (d *LogFetcherDecorator) DoGetRequest(req *http.Request) (*http.Response, error) {
+  resp, err := d.IFetcher.DoGetRequest(req)
   if err != nil {
-    d.l.Warn(err.Error())
+    d.l.Info(err.Error(), "HTTP Code", resp.StatusCode)
   }
   return resp, err
 }
 
-func (d *LogFetcherDecorator) ReadBody(r io.Reader) ([]byte, error) {
-  d.l.Debug("Reading response body")
-  body, err := d.IFetcher.ReadBody(r)
+func (d *LogFetcherDecorator) ReadResponseBody(r io.Reader) ([]byte, error) {
+  body, err := d.IFetcher.ReadResponseBody(r)
   if err != nil {
-    d.l.Error(err.Error())
-    d.l.Debug(
-      fmt.Sprintf("Retrieved body:\n%v", body),
-    )
+    d.l.Info(err.Error(), "body", body)
+  } else {
+    d.l.Debug("got response", "body", body)
   }
   return body, err
 }
 
 func (d *LogFetcherDecorator) ParseJson(body []byte) (github.ReleasesInfo, error) {
-  d.l.Debug("Checking if Github json response is valid")
+  d.l.Debug("checking if the Github json response is valid")
   info, err := d.IFetcher.ParseJson(body)
   if err != nil {
-    d.l.Error(err.Error())
-    d.l.Debug(string(body))
+    d.l.Info(err.Error())
   }
+  d.l.Debug("parsed json", "json body", info)
   return info, err
 }

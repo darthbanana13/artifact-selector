@@ -4,8 +4,11 @@ import (
   "go.uber.org/zap"
 )
 
+// Reference: https://dave.cheney.net/2015/11/05/lets-talk-about-logging
+// for philosophy on log levels
+
 type ZapLogger struct {
-  log *zap.Logger
+  Log *zap.SugaredLogger
 }
 
 func NewZapLogger(conf zap.Config) ZapLogger {
@@ -17,25 +20,19 @@ func NewZapLogger(conf zap.Config) ZapLogger {
 
   defer logger.Sync()
 
-  return ZapLogger{log: logger}
+  sugar := logger.Sugar()
+
+  return ZapLogger{Log: sugar}
 }
 
-func (zl *ZapLogger) Debug(msg string) {
-  zl.log.Debug(msg)
+func (zl *ZapLogger) Debug(msg string, keysAndValues ...any) {
+  zl.Log.Debugw(msg, keysAndValues...)
 }
 
-func (zl *ZapLogger) Info(msg string) {
-    zl.log.Info(msg)
+func (zl *ZapLogger) Info(msg string, keysAndValues ...any) {
+  zl.Log.Infow(msg, keysAndValues...)
 }
 
-func (zl *ZapLogger) Warn(msg string) {
-    zl.log.Warn(msg)
-}
-
-func (zl *ZapLogger) Error(msg string) {
-    zl.log.Error(msg)
-}
-
-func (zl *ZapLogger) Fatal(msg string) {
-    zl.log.Fatal(msg)
+func (zl *ZapLogger) Panic(msg string, keysAndValues ...any) {
+  zl.Log.Panicw(msg, keysAndValues...)
 }

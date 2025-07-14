@@ -10,13 +10,13 @@ import (
 
 func TestInitLogProd(t *testing.T) {
   logger := InitLog("ProD")
-  actualLevel := logger.log.Level()
+  actualLevel := logger.Log.Level()
   assert.Equal(t, zap.WarnLevel, actualLevel)
 }
 
 func TestInitLogDev(t *testing.T) {
   logger := InitLog("dEv")
-  actualLevel := logger.log.Level()
+  actualLevel := logger.Log.Level()
   assert.Equal(t, zap.DebugLevel, actualLevel)
 }
 
