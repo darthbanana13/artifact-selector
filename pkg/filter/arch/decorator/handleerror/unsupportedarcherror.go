@@ -1,4 +1,4 @@
-package arch
+package handleerror
 
 import (
 	"fmt"
@@ -16,3 +16,5 @@ func (e UnsupportedArchErr) Error() string {
 func (e UnsupportedArchErr) Unwrap() error {
 	return e.Err
 }
+
+type NilArchDecoratorErr error

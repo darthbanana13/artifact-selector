@@ -6918,6 +6918,7 @@
 .minipsf1
 .minipsf2
 .miniqsf
+.minisig
 .minisnsf
 .miniso
 .minissf

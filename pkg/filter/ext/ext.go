@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/darthbanana13/artifact-selector/pkg/extensionlist"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/handler"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
@@ -28,12 +27,15 @@ import (
 // }
 
 var ExtensionContentType = map[string][]string{
-	"deb":            {"application/octet-stream", "application/vnd.debian.binary-package"},
-	"tar.gz":         {"application/gzip", "application/x-gtar"},
+	"deb":            {"application/octet-stream", "application/vnd.debian.binary-package", "application/x-debian-package"},
+	"tar.gz":         {"application/gzip", "application/x-gtar", "application/x-gzip"},
 	"zip":            {"application/zip"},
 	"asc":            {"application/pgp-signature"},
 	"txt":            {"text/plain"},
 	"tar.xz":         {"application/x-xz"},
+	"tar.bz2":        {"application/x-bzip2", "application/x-bzip"},
+	"tbz":            {"application/x-bzip2", "application/x-bzip1-compressed-tar"},
+  "tar.zst":        {"application/octet-stream"},
 	"appimage":       {"application/vnd.appimage"},
 	"appimage.zsync": {"application/octet-stream"},
 	"sha256sum":      {"application/octet-stream"},
@@ -52,11 +54,6 @@ var ExtensionContentType = map[string][]string{
 type ExtFilter struct {
   El          *extensionlist.ExtensionList
   TargetExts  []string
-  Next        handler.IFilterHandler
-}
-
-func (ef *ExtFilter) SetNext(next handler.IFilterHandler) {
-  ef.Next = next
 }
 
 // TODO: Handle errors for extensions with unknown content types
@@ -77,9 +74,6 @@ func (ef *ExtFilter) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
     }
   }
   releases.Artifacts = filteredArtifacts
-  if len(filteredArtifacts) > 0 && ef.Next != nil {
-    return ef.Next.Filter(releases)
-  }
   return releases
 }
 

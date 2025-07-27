@@ -3,67 +3,52 @@ package arch
 import (
 	"strings"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter/handler"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
 var ArchMap = map[string][]string{
   "x86_64": {"x86_64", "amd64", "x64", "win64", "linux64"},
   "x86": {"x86", "i386", "386", "i486", "i586", "i686", "i786"},
-  "arm64": {"arm64", "aarch64", "arm64v8l", "arm64v8", "aarch64"},
-  "arm32": {"arm", "armv5", "armv5l", "armv6", "armv6l", "armv7", "armv7l", "armv8", "armv8l", "armhf", "armel"},
+  "arm64": {"aarch64", "arm64v8l", "arm64v8", "arm64"},
+  "arm32": {"armv5l", "armv5", "armv6l", "armv6", "armv7l", "armv7", "armv8l", "armv8", "armhf", "armel", "arm"},
   "riscv64": {"riscv64"},
+  "loongarch": {"loongarch64le", "loongarch64be", "loongarch64", "loongarch"},
   "s390": {"s390x", "s390"},
-  "powerpc": {"powerpc", "powerpc64", "ppc64le", "ppc64"},
-  "mips": {"mipsel", "mipsr6el", "mipsr6le", "mipsr6", "mips32", "mips64le", "mips64", "mipsle", "mips"},
-  "sparc": {"sparc", "sparc64"},
+  "powerpc": {"powerpc64", "powerpc", "ppc64le", "ppc64el", "ppc64"},
+  "mips": {"mipsel", "mipsr6el", "mipsr6le", "mipsr6", "mips32", "mips64le", "mips64r6le", "mips64r6", "mips64", "mipsle", "mips"},
+  "sparc": {"sparc64", "sparc"},
   "ia64": {"ia64"},
 }
 
-type ArchFilter struct {
-  Next        handler.IFilterHandler
+type Arch struct {
   TargetArch  string
 }
 
-func (af *ArchFilter) SetNext(next handler.IFilterHandler) {
-  af.Next = next
-}
-
-func (af *ArchFilter) SetTargetArch(targetArch string) error {
-  if _, ok := ArchMap[targetArch]; !ok {
-    return UnsupportedArchErr{Arch: targetArch}
-  }
-  af.TargetArch = targetArch
+func (a *Arch) SetTargetArch(targetArch string) error {
+  a.TargetArch = targetArch
   return nil
 }
 
-func NewArchFilter(targetArch string) (*ArchFilter, error) {
-  af := &ArchFilter{}
-  return af, af.SetTargetArch(targetArch)
+func NewArchFilter(targetArch string) (IArch, error) {
+  a := &Arch{}
+  return a, a.SetTargetArch(targetArch)
 }
 
-//TODO: Refactor to a smaller version
-func (af *ArchFilter) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
-  var filteredArtifacts []github.Artifact
-
-  for _, artifact := range releases.Artifacts {
-    // artifact.Size <= 102400
-    if af.FilterExactMatch(artifact) {
-      filteredArtifacts = append(filteredArtifacts, artifact)
-    } else if(af.TargetArch == "x86_64" && !af.DoesMatchOtherArch(artifact, af.TargetArch)) { 
-      filteredArtifacts = append(filteredArtifacts, artifact)
-    }
+func (a *Arch) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
+  if FilterExactMatch(artifact, a.TargetArch) {
+    return artifact, true
+  } else if(a.TargetArch == "x86_64" && !DoesMatchOtherArch(artifact, a.TargetArch)) {
+    return artifact, true
   }
-  
-  releases.Artifacts = filteredArtifacts
-  if len(filteredArtifacts) > 0 && af.Next != nil {
-    return af.Next.Filter(releases)
-  }
-  return releases
+  return artifact, false
 }
 
-func (af *ArchFilter) FilterExactMatch(artifact github.Artifact) bool {
-  for _, alias := range ArchMap[af.TargetArch] {
+// func (a *Arch) Filter(artifacts <-chan github.Artifact) <-chan github.Artifact {
+//   return concur.FilterChannel(artifacts, a.FilterArtifact)
+// }
+
+func FilterExactMatch(artifact github.Artifact, targetArch string) bool {
+  for _, alias := range ArchMap[targetArch] {
     if strings.Contains(strings.ToLower(artifact.FileName), alias) {
       return true
     }
@@ -71,7 +56,7 @@ func (af *ArchFilter) FilterExactMatch(artifact github.Artifact) bool {
   return false
 }
 
-func (af *ArchFilter) DoesMatchOtherArch(artifact github.Artifact, besidesArch string) bool {
+func DoesMatchOtherArch(artifact github.Artifact, besidesArch string) bool {
   for arch, aliases := range ArchMap {
     if arch == besidesArch {
       continue

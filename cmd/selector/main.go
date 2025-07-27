@@ -1,11 +1,11 @@
 package main
 
 import (
-  "context"
+	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 
 	"github.com/darthbanana13/artifact-selector/pkg/ghandledecorate"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
@@ -15,8 +15,12 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
 	archfilter "github.com/darthbanana13/artifact-selector/pkg/filter/arch"
-	extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/ext"
-	osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/os"
+	archdecorator "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator"
+	archhandleerror "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/handleerror"
+	archlog "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/log"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
+	// extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/ext"
+	// osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/os"
 
 	"github.com/urfave/cli/v3"
 )
@@ -33,26 +37,26 @@ func main() {
       &cli.StringFlag{
         Name: "github",
         Aliases: []string{"g"},
-        // Value: "neovim/neovim",
+        Value: "BurntSushi/ripgrep",
         Usage: "Specify the 'user/project_name' to directly look up github projects artifacts",
-        Required: true,
+        // Required: true,
       },
       &cli.StringFlag{
         Name: "extension",
         Aliases: []string{"e"},
-        // Value: "deb,,appimage,tar.xz,tar.gz",
+        Value: "deb,,appimage,tar.zst,tbz,tar.gz,tar.xz",
         Usage: "List the extension preference in a comma separated list. E.g. 'deb,appimage,LINUXBINARY'",
       },
       &cli.StringFlag{
         Name: "arch",
         Aliases: []string{"a"},
-        // Value: "x86_64",
+        Value: "x86_64",
         Usage: "Specify the target architecture for the binary. E.g. amd64, arm64, x86",
       },
       &cli.StringFlag{
         Name: "os",
         Aliases: []string{"o"},
-        // Value: "ubuntu",
+        Value: "ubuntu",
         Usage: "Specify the target OS/Distro. E.g. ubuntu, linux, macos",
       },
       &cli.StringFlag{
@@ -79,23 +83,50 @@ func main() {
         return err
       }
 
-      archF, err := archfilter.NewArchFilter(cmd.String("arch"))
+      input := make(chan github.Artifact)
+      go func() {
+        defer close(input)
+
+        for _, artifact := range info.Artifacts {
+          input <- artifact
+        }
+      }()
+
+      // TODO: Add 4 more filters: 
+      //  xz (deb), for debs compressed with zst (lsd-rs/lsd), or a generic regex that can be applied multiple times
+      //  musl/gnu (for musl vs gnu libc)
+      //  size difference (for example, if a file is an order of magnitude smaller than other artifacts, it's probably a text file) (mikefarah/yq)
+      //  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
+      newArchFilter := archdecorator.DecorateConstructor(archfilter.NewArchFilter,
+        archhandleerror.HandleErrorConstructorDecorator(),
+        archlog.LogConstructorDecorator(&logger),
+      )
+      archF, err := newArchFilter(cmd.String("arch"))
       if err != nil {
         return err
       }
-      osF, err := osfilter.NewOSFilter(cmd.String("os"))
-      if err != nil {
-        return err
+      // osF, err := osfilter.NewOSFilter(cmd.String("os"))
+      // if err != nil {
+      //   return err
+      // }
+      // extList := strings.Split(cmd.String("extension"), ",")
+      // extF, err := extfilter.NewOSFilter(extList)
+      // if err != nil {
+      //   return err
+      // }
+
+      var archStrategy concur.FilterFunc
+      archStrategy = archF.FilterArtifact
+
+      output := archStrategy.Filter(input)
+
+      artifacts := make([]github.Artifact, 0)
+      for artifact := range output {
+        artifacts = append(artifacts, artifact)
       }
-      extList := strings.Split(cmd.String("extension"), ",")
-      extF, err := extfilter.NewOSFilter(extList)
-      if err != nil {
-        return err
-      }
-      osF.SetNext(extF)
-      archF.SetNext(osF)
-      filteredInfo := archF.Filter(info) 
-      minfo, err := json.Marshal(filteredInfo)
+      info.Artifacts = artifacts
+      minfo, err := json.Marshal(info)
+
       if err != nil {
         return err
       }

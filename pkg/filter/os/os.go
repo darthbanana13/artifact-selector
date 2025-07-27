@@ -3,7 +3,6 @@ package os
 import (
 	"strings"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter/handler"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
@@ -11,7 +10,10 @@ var osMap = map[string][]string{
   "linux":    {"linux64", "linux"},
   "android":  {"android"},
   "windows":  {"windows", "win64", "win32", "win"},
-  "macos":    {"macos", "mac", "darwin", "osx"},
+  "macos":    {"macos", "mac", "darwin", "osx", "apple"},
+	"freebsd":	{"freebsd", "bsd"},
+	"openbsd":	{"openbsd", "bsd"},
+	"netbsd": 	{"netbsd", "bsd"},
 }
 
 //TODO: Should we also distinguish between versions of win, mac, or android?
@@ -24,12 +26,7 @@ var distroMap = map[string][]string{
 }
 
 type OSFilter struct {
-	Next			handler.IFilterHandler
 	TargetOS	string
-}
-
-func (of *OSFilter) SetNext(next handler.IFilterHandler) {
-	of.Next = next
 }
 
 //TODO: Error handling & logging
@@ -63,14 +60,11 @@ func (of *OSFilter) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
 			}
 		}
 		if !matched && of.DoesntMatchOSes(artifact.FileName, nonTargetOSes) {
-			matched = true
+				filteredArtifacts = append(filteredArtifacts, artifact)
 		}
 	}
 
   releases.Artifacts = filteredArtifacts
-  if len(filteredArtifacts) > 0 && of.Next != nil {
-    return of.Next.Filter(releases)
-  }
   return releases
 }
 

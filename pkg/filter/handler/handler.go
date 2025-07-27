@@ -4,7 +4,6 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
-type IFilterHandler interface {
-	Filter(github.ReleasesInfo) github.ReleasesInfo
-	SetNext(IFilterHandler)
+type IFilter interface {
+	Filter(<-chan github.Artifact) <-chan github.Artifact
 }
