@@ -35,4 +35,3 @@ func FilterChannel(artifacts <-chan github.Artifact, filterFunc FilterFunc) <-ch
 
 	return output
 }
-

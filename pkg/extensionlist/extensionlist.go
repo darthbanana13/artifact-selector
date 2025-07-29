@@ -11,7 +11,7 @@ type ExtensionList struct {
 }
 
 // TODO: Embed file extension list into the binary
-func NewExtensionList() (*ExtensionList, error) {	
+func NewExtensionList() (*ExtensionList, error) {
 	el := &ExtensionList{}
 	dat, err := os.ReadFile("pkg/extensionlist/extensionlist.txt")
 	if err != nil {

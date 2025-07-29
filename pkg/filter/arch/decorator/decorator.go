@@ -15,4 +15,3 @@ func DecorateConstructor(afc Constructor, decorators ...ConstructorDecorator) Co
 	}
 	return decorated
 }
-

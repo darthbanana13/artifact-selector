@@ -7,61 +7,61 @@ import (
 )
 
 var ArchMap = map[string][]string{
-  "x86_64": {"x86_64", "amd64", "x64", "win64", "linux64"},
-  "x86": {"x86", "i386", "386", "i486", "i586", "i686", "i786"},
-  "arm64": {"aarch64", "arm64v8l", "arm64v8", "arm64"},
-  "arm32": {"armv5l", "armv5", "armv6l", "armv6", "armv7l", "armv7", "armv8l", "armv8", "armhf", "armel", "arm"},
-  "riscv64": {"riscv64"},
-  "loongarch": {"loongarch64le", "loongarch64be", "loongarch64", "loongarch"},
-  "s390": {"s390x", "s390"},
-  "powerpc": {"powerpc64", "powerpc", "ppc64le", "ppc64el", "ppc64"},
-  "mips": {"mipsel", "mipsr6el", "mipsr6le", "mipsr6", "mips32", "mips64le", "mips64r6le", "mips64r6", "mips64", "mipsle", "mips"},
-  "sparc": {"sparc64", "sparc"},
-  "ia64": {"ia64"},
+	"x86_64":    {"x86_64", "amd64", "x64", "win64", "linux64"},
+	"x86":       {"x86", "i386", "386", "i486", "i586", "i686", "i786"},
+	"arm64":     {"aarch64", "arm64v8l", "arm64v8", "arm64"},
+	"arm32":     {"armv5l", "armv5", "armv6l", "armv6", "armv7l", "armv7", "armv8l", "armv8", "armhf", "armel", "arm"},
+	"riscv64":   {"riscv64"},
+	"loongarch": {"loongarch64le", "loongarch64be", "loongarch64", "loongarch"},
+	"s390":      {"s390x", "s390"},
+	"powerpc":   {"powerpc64", "powerpc", "ppc64le", "ppc64el", "ppc64"},
+	"mips":      {"mipsel", "mipsr6el", "mipsr6le", "mipsr6", "mips32", "mips64le", "mips64r6le", "mips64r6", "mips64", "mipsle", "mips"},
+	"sparc":     {"sparc64", "sparc"},
+	"ia64":      {"ia64"},
 }
 
 type Arch struct {
-  TargetArch  string
+	TargetArch string
 }
 
 func (a *Arch) SetTargetArch(targetArch string) error {
-  a.TargetArch = targetArch
-  return nil
+	a.TargetArch = targetArch
+	return nil
 }
 
 func NewArchFilter(targetArch string) (IArch, error) {
-  a := &Arch{}
-  return a, a.SetTargetArch(targetArch)
+	a := &Arch{}
+	return a, a.SetTargetArch(targetArch)
 }
 
 func (a *Arch) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-  if FilterExactMatch(artifact, a.TargetArch) {
-    return artifact, true
-  } else if(a.TargetArch == "x86_64" && !DoesMatchOtherArch(artifact, a.TargetArch)) {
-    return artifact, true
-  }
-  return artifact, false
+	if FilterExactMatch(artifact, a.TargetArch) {
+		return artifact, true
+	} else if a.TargetArch == "x86_64" && !DoesMatchOtherArch(artifact, a.TargetArch) {
+		return artifact, true
+	}
+	return artifact, false
 }
 
 func FilterExactMatch(artifact github.Artifact, targetArch string) bool {
-  for _, alias := range ArchMap[targetArch] {
-    if strings.Contains(strings.ToLower(artifact.FileName), alias) {
-      return true
-    }
-  }
-  return false
+	for _, alias := range ArchMap[targetArch] {
+		if strings.Contains(strings.ToLower(artifact.FileName), alias) {
+			return true
+		}
+	}
+	return false
 }
 
 func DoesMatchOtherArch(artifact github.Artifact, besidesArch string) bool {
-  for arch, aliases := range ArchMap {
-    if arch == besidesArch {
-      continue
-    }
-    for _, alias := range aliases {
-      if strings.Contains(strings.ToLower(artifact.FileName), alias) {
-        return true
-      }
-    }
-  }
-  return false
+	for arch, aliases := range ArchMap {
+		if arch == besidesArch {
+			continue
+		}
+		for _, alias := range aliases {
+			if strings.Contains(strings.ToLower(artifact.FileName), alias) {
+				return true
+			}
+		}
+	}
+	return false
 }

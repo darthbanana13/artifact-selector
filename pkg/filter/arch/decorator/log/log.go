@@ -9,7 +9,7 @@ import (
 
 type ArchLogDecorator struct {
 	arch arch.IArch
-	l logging.ILogger
+	l    logging.ILogger
 }
 
 func LogConstructorDecorator(logger logging.ILogger) decorator.ConstructorDecorator {
@@ -27,7 +27,7 @@ func LogConstructorDecorator(logger logging.ILogger) decorator.ConstructorDecora
 func NewArchLogDecorator(arch arch.IArch, logger logging.ILogger) arch.IArch {
 	return &ArchLogDecorator{
 		arch: arch,
-		l:		logger,
+		l:    logger,
 	}
 }
 

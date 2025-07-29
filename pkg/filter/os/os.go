@@ -8,26 +8,26 @@ import (
 )
 
 var OSMap = map[string][]string{
-  "linux":    {"linux64", "linux"},
-  "android":  {"android"},
-  "windows":  {"windows", "win64", "win32", "win"},
-  "macos":    {"macos", "mac", "darwin", "osx", "apple"},
-	"freebsd":	{"freebsd", "bsd"},
-	"openbsd":	{"openbsd", "bsd"},
-	"netbsd": 	{"netbsd", "bsd"},
+	"linux":   {"linux64", "linux"},
+	"android": {"android"},
+	"windows": {"windows", "win64", "win32", "win"},
+	"macos":   {"macos", "mac", "darwin", "osx", "apple"},
+	"freebsd": {"freebsd", "bsd"},
+	"openbsd": {"openbsd", "bsd"},
+	"netbsd":  {"netbsd", "bsd"},
 }
 
-//TODO: Should we also distinguish between versions of win, mac, or android?
+// TODO: Should we also distinguish between versions of win, mac, or android?
 var DistroMap = map[string][]string{
-	"debian":		{"debian"},
-	"ubuntu":		{"ubuntu", "debian"},
-	"fedora":		{"fedora", "rhel"},
-	"redhat":		{"redhat", "rhel"},
+	"debian": {"debian"},
+	"ubuntu": {"ubuntu", "debian"},
+	"fedora": {"fedora", "rhel"},
+	"redhat": {"redhat", "rhel"},
 }
 
 type OS struct {
-	targetOS	string
-	targetAliases []string
+	targetOS        string
+	targetAliases   []string
 	excludedAliases []string
 }
 
@@ -41,14 +41,14 @@ func (o *OS) TargetOS() string {
 	return o.targetOS
 }
 
-//TODO: Error handling & logging in a decorator
+// TODO: Error handling & logging in a decorator
 func NewOSFilter(targetOS string) (*OS, error) {
 	o := &OS{}
 	err := o.SetTargetOS(targetOS)
 	return o, err
 }
 
-//TODO: Should this filter give this hint about sorting, 1st distro then os?
+// TODO: Should this filter give this hint about sorting, 1st distro then os?
 func (o *OS) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
 	for _, osName := range o.targetAliases {
 		if MatchesAlias(osName, artifact.FileName) {
@@ -61,14 +61,14 @@ func (o *OS) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
 	return artifact, false
 }
 
-//TODO: A decorator should handle the sanitization of the targetOS
+// TODO: A decorator should handle the sanitization of the targetOS
 func PartitionOSAliases(targetOS string) (targetAliases, excludedAliases []string) {
 	// targetOS := strings.ToLower(o.targetOS)
 	if IsOSNameADistro(targetOS) {
 		targetAliases = append(targetAliases, DistroMap[targetOS]...)
 		excludedAliases = append(excludedAliases, GetExcludedDistros(targetOS)...)
 		targetOS = "linux"
-	} 
+	}
 	targetAliases = append(targetAliases, OSMap[targetOS]...)
 	excludedAliases = append(excludedAliases, GetExcludedOSes(targetOS)...)
 	return targetAliases, excludedAliases

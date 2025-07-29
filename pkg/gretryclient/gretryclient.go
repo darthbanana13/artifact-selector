@@ -1,7 +1,7 @@
 package gretryclient
 
 import (
-  "net/http"
+	"net/http"
 
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
@@ -9,9 +9,9 @@ import (
 )
 
 func NewRetryClient(maxRetries int, logger log.ILogger) *http.Client {
-  retryClient := retryablehttp.NewClient()
-  retryClient.RetryMax = maxRetries
-  retryClient.Logger = NewLeveledLoggerAdapter(logger)
+	retryClient := retryablehttp.NewClient()
+	retryClient.RetryMax = maxRetries
+	retryClient.Logger = NewLeveledLoggerAdapter(logger)
 
-  return retryClient.StandardClient()
+	return retryClient.StandardClient()
 }

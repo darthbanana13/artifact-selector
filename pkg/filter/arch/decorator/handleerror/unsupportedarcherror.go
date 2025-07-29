@@ -5,8 +5,8 @@ import (
 )
 
 type UnsupportedArchErr struct {
-	Arch	string
-	Err		error
+	Arch string
+	Err  error
 }
 
 func (e UnsupportedArchErr) Error() string {

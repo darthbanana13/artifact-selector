@@ -1,27 +1,27 @@
 package log
 
 import (
-  "testing"
+	"testing"
 
-  "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 
-  "go.uber.org/zap"
+	"go.uber.org/zap"
 )
 
 func TestInitLogProd(t *testing.T) {
-  logger := InitLog("ProD")
-  actualLevel := logger.Log.Level()
-  assert.Equal(t, zap.WarnLevel, actualLevel)
+	logger := InitLog("ProD")
+	actualLevel := logger.Log.Level()
+	assert.Equal(t, zap.WarnLevel, actualLevel)
 }
 
 func TestInitLogDev(t *testing.T) {
-  logger := InitLog("dEv")
-  actualLevel := logger.Log.Level()
-  assert.Equal(t, zap.DebugLevel, actualLevel)
+	logger := InitLog("dEv")
+	actualLevel := logger.Log.Level()
+	assert.Equal(t, zap.DebugLevel, actualLevel)
 }
 
 // This test does not have any value
 func TestNewZapLoggerPanic(t *testing.T) {
-  var emptyConfig zap.Config
-  assert.Panics(t, func() { NewZapLogger(emptyConfig) })
+	var emptyConfig zap.Config
+	assert.Panics(t, func() { NewZapLogger(emptyConfig) })
 }

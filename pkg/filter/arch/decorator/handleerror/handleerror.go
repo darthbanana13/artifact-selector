@@ -9,7 +9,7 @@ import (
 )
 
 type ArchHandleDecorator struct {
-	arch	arch.IArch
+	arch arch.IArch
 }
 
 func HandleErrorConstructorDecorator() decorator.ConstructorDecorator {
