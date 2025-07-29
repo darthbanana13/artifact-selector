@@ -1,12 +1,13 @@
 package os
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
-var osMap = map[string][]string{
+var OSMap = map[string][]string{
   "linux":    {"linux64", "linux"},
   "android":  {"android"},
   "windows":  {"windows", "win64", "win32", "win"},
@@ -17,98 +18,101 @@ var osMap = map[string][]string{
 }
 
 //TODO: Should we also distinguish between versions of win, mac, or android?
-//	Should we separate distros into a separate filter?
-var distroMap = map[string][]string{
+var DistroMap = map[string][]string{
 	"debian":		{"debian"},
 	"ubuntu":		{"ubuntu", "debian"},
 	"fedora":		{"fedora", "rhel"},
 	"redhat":		{"redhat", "rhel"},
 }
 
-type OSFilter struct {
-	TargetOS	string
+type OS struct {
+	targetOS	string
+	targetAliases []string
+	excludedAliases []string
 }
 
-//TODO: Error handling & logging
-func NewOSFilter(targetOS string) (*OSFilter, error) {
-	return &OSFilter{TargetOS: targetOS}, nil
+func (o *OS) SetTargetOS(targetOS string) error {
+	o.targetOS = targetOS
+	o.targetAliases, o.excludedAliases = PartitionOSAliases(o.targetOS)
+	return nil
 }
 
-//TODO: Refactor to a smaller version
-//TODO: Should this filter also sort, 1st distro then os?
-func (of *OSFilter) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
-	var filteredArtifacts []github.Artifact
-	
-	targetOSes := []string{}
-	nonTargetOSes := []string{}
-	targetOS := strings.ToLower(of.TargetOS)
-	if of.IsOSNameADistro(targetOS) {
-		targetOSes = append(targetOSes, distroMap[targetOS]...)
-		nonTargetOSes = append(nonTargetOSes, of.ComputeNonTargetDistros(targetOS)...)
+func (o *OS) TargetOS() string {
+	return o.targetOS
+}
+
+//TODO: Error handling & logging in a decorator
+func NewOSFilter(targetOS string) (*OS, error) {
+	o := &OS{}
+	err := o.SetTargetOS(targetOS)
+	return o, err
+}
+
+//TODO: Should this filter give this hint about sorting, 1st distro then os?
+func (o *OS) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
+	for _, osName := range o.targetAliases {
+		if MatchesAlias(osName, artifact.FileName) {
+			return artifact, true
+		}
+	}
+	if DoesntMatchAliases(o.excludedAliases, artifact.FileName) {
+		return artifact, true
+	}
+	return artifact, false
+}
+
+//TODO: A decorator should handle the sanitization of the targetOS
+func PartitionOSAliases(targetOS string) (targetAliases, excludedAliases []string) {
+	// targetOS := strings.ToLower(o.targetOS)
+	if IsOSNameADistro(targetOS) {
+		targetAliases = append(targetAliases, DistroMap[targetOS]...)
+		excludedAliases = append(excludedAliases, GetExcludedDistros(targetOS)...)
 		targetOS = "linux"
 	} 
-	targetOSes = append(targetOSes, osMap[targetOS]...)
-	nonTargetOSes = append(nonTargetOSes, of.ComputeNonTargetOSes(targetOS)...)
-	matched := false
-
-	for _, artifact := range releases.Artifacts {
-		matched = false
-		for _, osName := range targetOSes {
-			if of.MatchesOS(artifact.FileName, osName) {
-				filteredArtifacts = append(filteredArtifacts, artifact)
-				matched = true
-			}
-		}
-		if !matched && of.DoesntMatchOSes(artifact.FileName, nonTargetOSes) {
-				filteredArtifacts = append(filteredArtifacts, artifact)
-		}
-	}
-
-  releases.Artifacts = filteredArtifacts
-  return releases
+	targetAliases = append(targetAliases, OSMap[targetOS]...)
+	excludedAliases = append(excludedAliases, GetExcludedOSes(targetOS)...)
+	return targetAliases, excludedAliases
 }
 
-func (of *OSFilter) MatchesOS(fileName, osName string) bool {
-	if strings.Contains(strings.ToLower(fileName), osName) {
-		return true
-	}
-	return false
+func MatchesAlias(s, osName string) bool {
+	return strings.Contains(strings.ToLower(s), osName)
 }
 
-func (OSFilter) DoesntMatchOSes(fileName string, oses []string) bool {
+func DoesntMatchAliases(oses []string, s string) bool {
 	for _, osName := range oses {
-		if strings.Contains(strings.ToLower(fileName), osName) {
+		if strings.Contains(strings.ToLower(s), osName) {
 			return false
 		}
 	}
 	return true
 }
 
-func (OSFilter) ComputeNonTargetOSes(targetOS string) []string {
-	nonTargetOSes := []string{}
-	for osType, osStrings := range osMap {
-		if osType == targetOS {
+func ValuesNotInKey(key string, hashmap map[string][]string) []string {
+	difference := []string{}
+	for k, values := range hashmap {
+		if k == key {
 			continue
 		}
-		nonTargetOSes = append(nonTargetOSes, osStrings...)
+		for _, value := range values {
+			if !slices.Contains(hashmap[key], value) {
+				difference = append(difference, value)
+			}
+		}
 	}
-	return nonTargetOSes
+	return difference
 }
 
-func (OSFilter) IsOSNameADistro(osName string) bool {
-	if _, ok := distroMap[osName]; ok {
+func GetExcludedOSes(targetOS string) []string {
+	return ValuesNotInKey(targetOS, OSMap)
+}
+
+func GetExcludedDistros(distroName string) []string {
+	return ValuesNotInKey(distroName, DistroMap)
+}
+
+func IsOSNameADistro(osName string) bool {
+	if _, ok := DistroMap[osName]; ok {
 		return true
 	}
 	return false
-}
-
-func (OSFilter) ComputeNonTargetDistros(distroName string) []string {
-	nonTargetDistros := []string{}
-	for distro, distroStrings := range distroMap {
-		if distroName == distro {
-			continue
-		}
-		nonTargetDistros = append(nonTargetDistros, distroStrings...)
-	}
-	return nonTargetDistros
 }

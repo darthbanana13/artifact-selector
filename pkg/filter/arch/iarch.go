@@ -6,6 +6,5 @@ import (
 
 type IArch interface {
 	SetTargetArch(string) error
-	// Filter(<-chan github.Artifact) <-chan github.Artifact
 	FilterArtifact(github.Artifact) (github.Artifact, bool)
 }

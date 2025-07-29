@@ -20,7 +20,7 @@ import (
 	archlog "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/log"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
 	// extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/ext"
-	// osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/os"
+	osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/os"
 
 	"github.com/urfave/cli/v3"
 )
@@ -105,20 +105,21 @@ func main() {
       if err != nil {
         return err
       }
-      // osF, err := osfilter.NewOSFilter(cmd.String("os"))
-      // if err != nil {
-      //   return err
-      // }
+      osF, err := osfilter.NewOSFilter(cmd.String("os"))
+      if err != nil {
+        return err
+      }
       // extList := strings.Split(cmd.String("extension"), ",")
       // extF, err := extfilter.NewOSFilter(extList)
       // if err != nil {
       //   return err
       // }
 
-      var archStrategy concur.FilterFunc
+      var archStrategy, osStrategy concur.FilterFunc
       archStrategy = archF.FilterArtifact
+      osStrategy = osF.FilterArtifact
 
-      output := archStrategy.Filter(input)
+      output := osStrategy.Filter(archStrategy.Filter(input))
 
       artifacts := make([]github.Artifact, 0)
       for artifact := range output {

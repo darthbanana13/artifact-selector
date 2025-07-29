@@ -43,10 +43,6 @@ func (a *Arch) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) 
   return artifact, false
 }
 
-// func (a *Arch) Filter(artifacts <-chan github.Artifact) <-chan github.Artifact {
-//   return concur.FilterChannel(artifacts, a.FilterArtifact)
-// }
-
 func FilterExactMatch(artifact github.Artifact, targetArch string) bool {
   for _, alias := range ArchMap[targetArch] {
     if strings.Contains(strings.ToLower(artifact.FileName), alias) {
