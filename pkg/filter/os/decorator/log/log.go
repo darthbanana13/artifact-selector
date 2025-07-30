@@ -10,7 +10,7 @@ import (
 	logging "github.com/darthbanana13/artifact-selector/pkg/log"
 )
 
-type OSLogDecorator struct {
+type LogDecorator struct {
 	os os.IOS
 	l  logging.ILogger
 }
@@ -22,12 +22,12 @@ func LogConstructorDecorator(logger logging.ILogger) funcdecorator.FunctionDecor
 			if err != nil {
 				return of, err
 			}
-			return NewOSLogDecorator(of, logger)
+			return NewLogDecorator(of, logger)
 		}
 	}
 }
 
-func NewOSLogDecorator(osf os.IOS, logger logging.ILogger) (os.IOS, error) {
+func NewLogDecorator(osf os.IOS, logger logging.ILogger) (os.IOS, error) {
 	if logger == nil {
 		return nil, decorator.NilOSDecoratorErr(errors.New("Logger can not be nil!"))
 	}
@@ -36,20 +36,20 @@ func NewOSLogDecorator(osf os.IOS, logger logging.ILogger) (os.IOS, error) {
 		logger.Info(err.Error())
 		return nil, err
 	}
-	return &OSLogDecorator{
+	return &LogDecorator{
 		os: osf,
 		l:  logger,
 	}, nil
 }
 
-func (old *OSLogDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	filteredArtifact, ok := old.os.FilterArtifact(artifact)
-	old.l.Debug("OS filtered", "Artifact", filteredArtifact, "Matched", ok)
+func (ld *LogDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
+	filteredArtifact, ok := ld.os.FilterArtifact(artifact)
+	ld.l.Debug("OS filtered", "Artifact", filteredArtifact, "Matched", ok)
 	return filteredArtifact, ok
 }
 
-func (old *OSLogDecorator) SetTargetOS(targetOS string) error {
-	old.l.Debug("Setting", "Target OS", targetOS)
-	return old.os.SetTargetOS(targetOS)
+func (ld *LogDecorator) SetTargetOS(targetOS string) error {
+	ld.l.Debug("Setting", "Target OS", targetOS)
+	return ld.os.SetTargetOS(targetOS)
 }
 

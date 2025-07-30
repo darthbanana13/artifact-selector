@@ -1,4 +1,4 @@
-package handleerror
+package handleerr
 
 import (
 	"fmt"

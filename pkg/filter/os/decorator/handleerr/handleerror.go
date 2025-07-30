@@ -1,4 +1,4 @@
-package handleerror
+package handleerr
 
 import (
 	"errors"
@@ -10,11 +10,11 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
-type OSHandleDecorator struct {
+type HandleErrDecorator struct {
 	os os.IOS
 }
 
-func HandleErrorConstructorDecorator() funcdecorator.FunctionDecorator[decorator.Constructor] {
+func HandleErrConstructorDecorator() funcdecorator.FunctionDecorator[decorator.Constructor] {
 	return func(ofc decorator.Constructor) decorator.Constructor {
 		return func(targetOS string) (os.IOS, error) {
 			targetOS = strings.ToLower(targetOS)
@@ -25,29 +25,29 @@ func HandleErrorConstructorDecorator() funcdecorator.FunctionDecorator[decorator
 			if err != nil {
 				return of, err
 			}
-			return NewOSHandleDecorator(of)
+			return NewHandleErrDecorator(of)
 		}
 	}
 }
 
-func NewOSHandleDecorator(os os.IOS) (os.IOS, error) {
+func NewHandleErrDecorator(os os.IOS) (os.IOS, error) {
 	if os == nil {
 		return nil, decorator.NilOSDecoratorErr(errors.New("OSFilter/IOS cannot be nil"))
 	}
-	return &OSHandleDecorator{
+	return &HandleErrDecorator{
 		os: os,
 	}, nil
 }
 
-func (ohd *OSHandleDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	return ohd.os.FilterArtifact(artifact)
+func (hed *HandleErrDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
+	return hed.os.FilterArtifact(artifact)
 }
 
-func (ohd *OSHandleDecorator) SetTargetOS(targetOS string) error {
+func (hed *HandleErrDecorator) SetTargetOS(targetOS string) error {
 	if err := CheckValidOS(targetOS); err != nil {
 		return err
 	}
-	return ohd.os.SetTargetOS(targetOS)
+	return hed.os.SetTargetOS(targetOS)
 }
 
 func CheckValidOS(osName string) error {

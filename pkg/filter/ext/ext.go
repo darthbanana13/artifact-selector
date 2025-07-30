@@ -55,8 +55,13 @@ type Ext struct {
 }
 
 // TODO: Handle errors for extensions with unknown content types
-func NewOSFilter(targetExts []string) (*Ext, error) {
+func NewExtFilter(targetExts []string) (IExt, error) {
 	return &Ext{TargetExts: targetExts}, nil
+}
+
+func (e *Ext) SetTargetExts(targetExts []string) error {
+	e.TargetExts = targetExts
+	return nil
 }
 
 func (e *Ext) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
@@ -66,21 +71,6 @@ func (e *Ext) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
 		}
 	}
 	return artifact, false
-}
-
-// TODO: Refactor to a smaller version
-func (e *Ext) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
-	var filteredArtifacts []github.Artifact
-
-	for _, ext := range e.TargetExts {
-		for _, artifact := range releases.Artifacts {
-			if e.HasExtension(artifact, ext) {
-				filteredArtifacts = append(filteredArtifacts, artifact)
-			}
-		}
-	}
-	releases.Artifacts = filteredArtifacts
-	return releases
 }
 
 func (e *Ext) HasExtension(artifact github.Artifact, ext string) bool {

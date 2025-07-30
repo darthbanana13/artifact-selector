@@ -10,7 +10,7 @@ import (
 	logging "github.com/darthbanana13/artifact-selector/pkg/log"
 )
 
-type ArchLogDecorator struct {
+type LogDecorator struct {
 	arch arch.IArch
 	l    logging.ILogger
 }
@@ -22,12 +22,12 @@ func LogConstructorDecorator(logger logging.ILogger) funcdecorator.FunctionDecor
 			if err != nil {
 				return af, err
 			}
-			return NewArchLogDecorator(af, logger)
+			return NewLogDecorator(af, logger)
 		}
 	}
 }
 
-func NewArchLogDecorator(arch arch.IArch, logger logging.ILogger) (arch.IArch, error) {
+func NewLogDecorator(arch arch.IArch, logger logging.ILogger) (arch.IArch, error) {
 	if logger == nil {
 		return nil, decorator.NilArchDecoratorErr(errors.New("Logger can not be nil!"))
 	}
@@ -36,19 +36,19 @@ func NewArchLogDecorator(arch arch.IArch, logger logging.ILogger) (arch.IArch, e
 		logger.Info(err.Error())
 		return nil, err
 	}
-	return &ArchLogDecorator{
+	return &LogDecorator{
 		arch: arch,
 		l:    logger,
 	}, nil
 }
 
-func (ald *ArchLogDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	filteredArtifact, ok := ald.arch.FilterArtifact(artifact)
-	ald.l.Debug("Architecture filtering", "Artifact", filteredArtifact, "Matched", ok)
+func (ld *LogDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
+	filteredArtifact, ok := ld.arch.FilterArtifact(artifact)
+	ld.l.Debug("Architecture filtered", "Artifact", filteredArtifact, "Matched", ok)
 	return filteredArtifact, ok
 }
 
-func (ald *ArchLogDecorator) SetTargetArch(targetArch string) error {
-	ald.l.Debug("Setting", "Target Architecture", targetArch)
-	return ald.arch.SetTargetArch(targetArch)
+func (ld *LogDecorator) SetTargetArch(targetArch string) error {
+	ld.l.Debug("Setting", "Target Architecture", targetArch)
+	return ld.arch.SetTargetArch(targetArch)
 }

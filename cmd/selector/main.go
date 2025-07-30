@@ -15,14 +15,16 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
 	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
-	archfilter "github.com/darthbanana13/artifact-selector/pkg/filter/arch"
-	archhandleerror "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/handleerror"
-	archlog "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/log"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
-	extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/ext"
-	osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/os"
-	oshandleerror "github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/handleerror"
-	oslog "github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/log"
+	archfilter 			"github.com/darthbanana13/artifact-selector/pkg/filter/arch"
+	archhandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/handleerr"
+	archlog 				"github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/log"
+	extfilter 			"github.com/darthbanana13/artifact-selector/pkg/filter/ext"
+	exthandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/ext/decorator/handleerr"
+	extlog 					"github.com/darthbanana13/artifact-selector/pkg/filter/ext/decorator/log"
+	osfilter 				"github.com/darthbanana13/artifact-selector/pkg/filter/os"
+	oshandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/handleerr"
+	oslog 					"github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/log"
 
 	"github.com/urfave/cli/v3"
 )
@@ -100,7 +102,7 @@ func main() {
 			//  size difference (for example, if a file is an order of magnitude smaller than other artifacts, it's probably a text file) (mikefarah/yq)
 			//  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
 			newArchFilter := funcdecorator.DecorateFunction(archfilter.NewArchFilter,
-				archhandleerror.HandleErrorConstructorDecorator(),
+				archhandleerr.HandleErrConstructorDecorator(),
 				archlog.LogConstructorDecorator(&logger),
 			)
 			archF, err := newArchFilter(cmd.String("arch"))
@@ -108,15 +110,19 @@ func main() {
 				return err
 			}
 			newOSFilter := funcdecorator.DecorateFunction(osfilter.NewOSFilter,
-				oshandleerror.HandleErrorConstructorDecorator(),
+				oshandleerr.HandleErrConstructorDecorator(),
 				oslog.LogConstructorDecorator(&logger),
 			)
 			osF, err := newOSFilter(cmd.String("os"))
 			if err != nil {
 				return err
 			}
+			newExtFilter := funcdecorator.DecorateFunction(extfilter.NewExtFilter,
+				exthandleerr.HandleErrConstructorDecorator(),
+				extlog.LogConstructorDecorator(&logger),
+			)
 			extList := strings.Split(cmd.String("extension"), ",")
-			extF, err := extfilter.NewOSFilter(extList)
+			extF, err := newExtFilter(extList)
 			if err != nil {
 			  return err
 			}
