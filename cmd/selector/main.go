@@ -14,8 +14,8 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/gretryclient"
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
+	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
 	archfilter "github.com/darthbanana13/artifact-selector/pkg/filter/arch"
-	archdecorator "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator"
 	archhandleerror "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/handleerror"
 	archlog "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/log"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
@@ -97,7 +97,7 @@ func main() {
 			//  musl/gnu (for musl vs gnu libc)
 			//  size difference (for example, if a file is an order of magnitude smaller than other artifacts, it's probably a text file) (mikefarah/yq)
 			//  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
-			newArchFilter := archdecorator.DecorateConstructor(archfilter.NewArchFilter,
+			newArchFilter := funcdecorator.DecorateFunction(archfilter.NewArchFilter,
 				archhandleerror.HandleErrorConstructorDecorator(),
 				archlog.LogConstructorDecorator(&logger),
 			)

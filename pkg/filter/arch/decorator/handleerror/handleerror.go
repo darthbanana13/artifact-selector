@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/darthbanana13/artifact-selector/pkg/filter/arch"
+	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
@@ -12,7 +13,7 @@ type ArchHandleDecorator struct {
 	arch arch.IArch
 }
 
-func HandleErrorConstructorDecorator() decorator.ConstructorDecorator {
+func HandleErrorConstructorDecorator() funcdecorator.FunctionDecorator[decorator.Constructor] {
 	return func(afc decorator.Constructor) decorator.Constructor {
 		return func(targetArch string) (arch.IArch, error) {
 			if err := CheckValidArch(targetArch); err != nil {
@@ -35,10 +36,6 @@ func NewArchHandleDecorator(arch arch.IArch) (arch.IArch, error) {
 		arch: arch,
 	}, nil
 }
-
-// func (ahd *ArchHandleDecorator) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
-// 	return ahd.arch.Filter(releases)
-// }
 
 func (ahd *ArchHandleDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
 	return ahd.arch.FilterArtifact(artifact)

@@ -2,6 +2,7 @@ package log
 
 import (
 	"github.com/darthbanana13/artifact-selector/pkg/filter/arch"
+	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 	logging "github.com/darthbanana13/artifact-selector/pkg/log"
@@ -12,7 +13,7 @@ type ArchLogDecorator struct {
 	l    logging.ILogger
 }
 
-func LogConstructorDecorator(logger logging.ILogger) decorator.ConstructorDecorator {
+func LogConstructorDecorator(logger logging.ILogger) funcdecorator.FunctionDecorator[decorator.Constructor] {
 	return func(afc decorator.Constructor) decorator.Constructor {
 		return func(targetArch string) (arch.IArch, error) {
 			af, err := afc(targetArch)
@@ -30,12 +31,6 @@ func NewArchLogDecorator(arch arch.IArch, logger logging.ILogger) arch.IArch {
 		l:    logger,
 	}
 }
-
-// func (ald *ArchLogDecorator) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
-// 	filtered := ald.arch.Filter(releases)
-// 	ald.l.Debug("Filtered releases based on architecture", "Artifacts", filtered.Artifacts)
-// 	return filtered
-// }
 
 func (ald *ArchLogDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
 	filteredArtifact, ok := ald.arch.FilterArtifact(artifact)
