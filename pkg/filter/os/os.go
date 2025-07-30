@@ -4,13 +4,14 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/darthbanana13/artifact-selector/pkg/filter/separator"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
 var OSMap = map[string][]string{
 	"linux":   {"linux64", "linux"},
 	"android": {"android"},
-	"windows": {"windows", "win64", "win32", "win"},
+	"windows": {"windows", "win64", "win32", "win11", "win10", "win"},
 	"macos":   {"macos", "mac", "darwin", "osx", "apple"},
 	"freebsd": {"freebsd", "bsd"},
 	"openbsd": {"openbsd", "bsd"},
@@ -49,8 +50,8 @@ func NewOSFilter(targetOS string) (IOS, error) {
 
 // TODO: Should this filter give this hint about sorting, 1st distro then os?
 func (o *OS) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	for _, osName := range o.targetAliases {
-		if MatchesAlias(osName, artifact.FileName) {
+	for _, alias := range o.targetAliases {
+		if MatchesAlias(alias, artifact.FileName) {
 			return artifact, true
 		}
 	}
@@ -71,13 +72,15 @@ func PartitionOSAliases(targetOS string) (targetAliases, excludedAliases []strin
 	return targetAliases, excludedAliases
 }
 
-func MatchesAlias(s, osName string) bool {
-	return strings.Contains(strings.ToLower(s), osName)
+func MatchesAlias(s, alias string) bool {
+	r := separator.MakeAliasRegex(alias)
+	return r.MatchString(strings.ToLower(s))
 }
 
-func DoesntMatchAliases(oses []string, s string) bool {
-	for _, osName := range oses {
-		if strings.Contains(strings.ToLower(s), osName) {
+func DoesntMatchAliases(aliases []string, s string) bool {
+	for _, alias := range aliases {
+		r := separator.MakeAliasRegex(alias)
+		if r.MatchString(strings.ToLower(s)) {
 			return false
 		}
 	}

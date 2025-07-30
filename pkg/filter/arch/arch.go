@@ -3,6 +3,7 @@ package arch
 import (
 	"strings"
 
+	"github.com/darthbanana13/artifact-selector/pkg/filter/separator"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
@@ -35,30 +36,33 @@ func NewArchFilter(targetArch string) (IArch, error) {
 }
 
 func (a *Arch) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	if FilterExactMatch(artifact, a.TargetArch) {
+	if MatchesArch(artifact.FileName, a.TargetArch) {
 		return artifact, true
-	} else if a.TargetArch == "x86_64" && !DoesMatchOtherArch(artifact, a.TargetArch) {
+	} else if a.TargetArch == "x86_64" && !MatchesOtherArch(artifact.FileName, a.TargetArch) {
 		return artifact, true
 	}
 	return artifact, false
 }
 
-func FilterExactMatch(artifact github.Artifact, targetArch string) bool {
+//TODO: Cache all the regexes for better performance
+func MatchesArch(fileName string, targetArch string) bool {
 	for _, alias := range ArchMap[targetArch] {
-		if strings.Contains(strings.ToLower(artifact.FileName), alias) {
+		r := separator.MakeAliasRegex(alias)
+		if r.MatchString(strings.ToLower(fileName)) {
 			return true
 		}
 	}
 	return false
 }
 
-func DoesMatchOtherArch(artifact github.Artifact, besidesArch string) bool {
+func MatchesOtherArch(fileName string, besidesArch string) bool {
 	for arch, aliases := range ArchMap {
 		if arch == besidesArch {
 			continue
 		}
 		for _, alias := range aliases {
-			if strings.Contains(strings.ToLower(artifact.FileName), alias) {
+			r := separator.MakeAliasRegex(alias)
+			if r.MatchString(strings.ToLower(fileName)) {
 				return true
 			}
 		}
