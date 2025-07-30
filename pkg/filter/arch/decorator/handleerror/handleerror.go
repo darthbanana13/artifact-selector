@@ -2,10 +2,11 @@ package handleerror
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/darthbanana13/artifact-selector/pkg/filter/arch"
-	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator"
+	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
@@ -16,6 +17,7 @@ type ArchHandleDecorator struct {
 func HandleErrorConstructorDecorator() funcdecorator.FunctionDecorator[decorator.Constructor] {
 	return func(afc decorator.Constructor) decorator.Constructor {
 		return func(targetArch string) (arch.IArch, error) {
+			targetArch = strings.ToLower(targetArch)
 			if err := CheckValidArch(targetArch); err != nil {
 				return nil, err
 			}
@@ -30,7 +32,7 @@ func HandleErrorConstructorDecorator() funcdecorator.FunctionDecorator[decorator
 
 func NewArchHandleDecorator(arch arch.IArch) (arch.IArch, error) {
 	if arch == nil {
-		return nil, NilArchDecoratorErr(errors.New("ArchFilter/IArch cannot be nil"))
+		return nil, decorator.NilArchDecoratorErr(errors.New("ArchFilter/IArch cannot be nil"))
 	}
 	return &ArchHandleDecorator{
 		arch: arch,
@@ -50,7 +52,8 @@ func (ahd *ArchHandleDecorator) SetTargetArch(targetArch string) error {
 
 func CheckValidArch(archName string) error {
 	if _, ok := arch.ArchMap[archName]; !ok {
-		return UnsupportedArchErr{Arch: archName}
+		err := UnsupportedArchErr{Arch: archName}
+		return err
 	}
 	return nil
 }

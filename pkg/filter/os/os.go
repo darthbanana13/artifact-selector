@@ -41,8 +41,7 @@ func (o *OS) TargetOS() string {
 	return o.targetOS
 }
 
-// TODO: Error handling & logging in a decorator
-func NewOSFilter(targetOS string) (*OS, error) {
+func NewOSFilter(targetOS string) (IOS, error) {
 	o := &OS{}
 	err := o.SetTargetOS(targetOS)
 	return o, err
@@ -61,9 +60,7 @@ func (o *OS) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
 	return artifact, false
 }
 
-// TODO: A decorator should handle the sanitization of the targetOS
 func PartitionOSAliases(targetOS string) (targetAliases, excludedAliases []string) {
-	// targetOS := strings.ToLower(o.targetOS)
 	if IsOSNameADistro(targetOS) {
 		targetAliases = append(targetAliases, DistroMap[targetOS]...)
 		excludedAliases = append(excludedAliases, GetExcludedDistros(targetOS)...)

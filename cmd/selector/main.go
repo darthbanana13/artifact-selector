@@ -21,6 +21,8 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
 	// extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/ext"
 	osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/os"
+	oshandleerror "github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/handleerror"
+	oslog "github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/log"
 
 	"github.com/urfave/cli/v3"
 )
@@ -105,7 +107,11 @@ func main() {
 			if err != nil {
 				return err
 			}
-			osF, err := osfilter.NewOSFilter(cmd.String("os"))
+			newOSFilter := funcdecorator.DecorateFunction(osfilter.NewOSFilter,
+				oshandleerror.HandleErrorConstructorDecorator(),
+				oslog.LogConstructorDecorator(&logger),
+			)
+			osF, err := newOSFilter(cmd.String("os"))
 			if err != nil {
 				return err
 			}

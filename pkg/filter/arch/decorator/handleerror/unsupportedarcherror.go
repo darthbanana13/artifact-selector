@@ -10,11 +10,9 @@ type UnsupportedArchErr struct {
 }
 
 func (e UnsupportedArchErr) Error() string {
-	return fmt.Sprintf("Unsupported architecture: %s. %s", e.Arch, e.Err.Error())
+	return fmt.Sprintf("Unsupported architecture: %s", e.Arch)
 }
 
 func (e UnsupportedArchErr) Unwrap() error {
 	return e.Err
 }
-
-type NilArchDecoratorErr error
