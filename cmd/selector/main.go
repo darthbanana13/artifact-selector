@@ -19,7 +19,7 @@ import (
 	archhandleerror "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/handleerror"
 	archlog "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/log"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
-	// extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/ext"
+	extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/ext"
 	osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/os"
 	oshandleerror "github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/handleerror"
 	oslog "github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/log"
@@ -115,17 +115,17 @@ func main() {
 			if err != nil {
 				return err
 			}
-			// extList := strings.Split(cmd.String("extension"), ",")
-			// extF, err := extfilter.NewOSFilter(extList)
-			// if err != nil {
-			//   return err
-			// }
+			extList := strings.Split(cmd.String("extension"), ",")
+			extF, err := extfilter.NewOSFilter(extList)
+			if err != nil {
+			  return err
+			}
 
-			var archStrategy, osStrategy concur.FilterFunc
-			archStrategy = archF.FilterArtifact
-			osStrategy = osF.FilterArtifact
+			var archStrategy concur.FilterFunc = archF.FilterArtifact
+			var osStrategy concur.FilterFunc = osF.FilterArtifact
+			var extStrategy concur.FilterFunc = extF.FilterArtifact
 
-			output := osStrategy.Filter(archStrategy.Filter(input))
+			output := extStrategy.Filter(osStrategy.Filter(archStrategy.Filter(input)))
 
 			artifacts := make([]github.Artifact, 0)
 			for artifact := range output {

@@ -4,3 +4,6 @@ run:
 
 test:
 	scripts/test.sh
+
+ext:
+	scripts/make_extension_list.sh

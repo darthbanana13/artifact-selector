@@ -47,28 +47,34 @@ var ExtensionContentType = map[string][]string{
 	"apk":            {"application/vnd.android.package-archive"},
 	"dmg":            {"application/x-apple-diskimage"},
 	"pkg":            {"application/octet-stream"},
-	//TODO: Make a special value for this called LINUXBINARY
-	"": {"application/octet-stream"},
+	"":								{"application/octet-stream"}, //TODO: Make a special value for this called LINUXBINARY
 }
 
-type ExtFilter struct {
-	El         *extensionlist.ExtensionList
+type Ext struct {
 	TargetExts []string
 }
 
 // TODO: Handle errors for extensions with unknown content types
-func NewOSFilter(targetExts []string) (*ExtFilter, error) {
-	el, err := extensionlist.NewExtensionList()
-	return &ExtFilter{El: el, TargetExts: targetExts}, err
+func NewOSFilter(targetExts []string) (*Ext, error) {
+	return &Ext{TargetExts: targetExts}, nil
+}
+
+func (e *Ext) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
+	for _, ext := range e.TargetExts {
+		if e.HasExtension(artifact, ext) {
+			return artifact, true
+		}
+	}
+	return artifact, false
 }
 
 // TODO: Refactor to a smaller version
-func (ef *ExtFilter) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
+func (e *Ext) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
 	var filteredArtifacts []github.Artifact
 
-	for _, ext := range ef.TargetExts {
+	for _, ext := range e.TargetExts {
 		for _, artifact := range releases.Artifacts {
-			if ef.HasExtension(artifact, ext) {
+			if e.HasExtension(artifact, ext) {
 				filteredArtifacts = append(filteredArtifacts, artifact)
 			}
 		}
@@ -77,25 +83,25 @@ func (ef *ExtFilter) Filter(releases github.ReleasesInfo) github.ReleasesInfo {
 	return releases
 }
 
-func (ef *ExtFilter) HasExtension(artifact github.Artifact, ext string) bool {
+func (e *Ext) HasExtension(artifact github.Artifact, ext string) bool {
 	if ext == "" {
-		return ef.IsLinuxExecutable(artifact)
+		return IsLinuxExecutable(artifact)
 	}
-	return ef.DoesEndWithExtension(artifact.FileName, ext) && ef.HasContentType(artifact.ContentType, ext)
+	return DoesEndWithExtension(artifact.FileName, ext) && HasContentType(artifact.ContentType, ext)
 }
 
-func (ExtFilter) DoesEndWithExtension(fileName, ext string) bool {
+func DoesEndWithExtension(fileName, ext string) bool {
 	return strings.HasSuffix(strings.ToLower(fileName), fmt.Sprintf(".%s", ext))
 }
 
-func (ef *ExtFilter) IsLinuxExecutable(artifact github.Artifact) bool {
+func IsLinuxExecutable(artifact github.Artifact) bool {
 	hasNoExtension := !strings.Contains(artifact.FileName, ".")
 	// Maybe the author used . for separators in the filename but it actually has no extension
-	hasKnownExtension := ef.El.IsKnownExtension(filepath.Ext(artifact.FileName))
-	hasLinuxExecutableContentType := ef.HasContentType(artifact.ContentType, "")
+	hasKnownExtension := extensionlist.IsKnownExtension(filepath.Ext(artifact.FileName))
+	hasLinuxExecutableContentType := HasContentType(artifact.ContentType, "")
 	return (hasNoExtension || !hasKnownExtension) && hasLinuxExecutableContentType
 }
 
-func (ExtFilter) HasContentType(contentType string, ext string) bool {
+func HasContentType(contentType string, ext string) bool {
 	return slices.Contains(ExtensionContentType[ext], strings.ToLower(contentType))
 }
