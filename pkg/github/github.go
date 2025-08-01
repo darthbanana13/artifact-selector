@@ -92,9 +92,6 @@ func (f *HttpFetcher) PrepareRequest(url string) *http.Request {
 	// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-the-latest-release
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
-	// if len(f.t) > 0 {
-	//   req.Header.Set("Authorization", "Bearer " + f.t)
-	// }
 
 	return req
 }

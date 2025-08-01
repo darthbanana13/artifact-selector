@@ -17,7 +17,7 @@ EOL
 
 while IFS= read -r line || [[ -n "$line" ]]; do
     if [[ -n "$line" ]]; then
-        printf "\t\"%s\": true,\n" "$line" >> "$OUTPUT_FILE"
+        printf "\t\"%s\": true,\n" "${line#.}" >> "$OUTPUT_FILE"
     fi
 done < "$INPUT_FILE"
 

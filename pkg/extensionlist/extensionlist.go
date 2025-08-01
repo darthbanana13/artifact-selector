@@ -1,7 +1,6 @@
 package extensionlist
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -10,9 +9,7 @@ func IsKnownExtension(ext string) bool {
 		return true
 	}
 	ext = strings.ToLower(ext)
-	if !strings.HasPrefix(ext, ".") {
-		ext = fmt.Sprintf(".%s", ext)
-	}
+	ext = strings.TrimPrefix(ext, ".")
 	if _, ok := exts[ext]; ok {
 		return true
 	}
