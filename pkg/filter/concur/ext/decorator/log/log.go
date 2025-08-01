@@ -3,16 +3,16 @@ package log
 import (
 	"errors"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter/ext"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/ext/decorator"
+	"github.com/darthbanana13/artifact-selector/pkg/filter"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/decorator"
 	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
-	"github.com/darthbanana13/artifact-selector/pkg/github"
 	logging "github.com/darthbanana13/artifact-selector/pkg/log"
 )
 
 type LogDecorator struct {
-	ext ext.IExt
-	l   logging.ILogger
+	Ext ext.IExt
+	L   logging.ILogger
 }
 
 func LogConstructorDecorator(logger logging.ILogger) funcdecorator.FunctionDecorator[decorator.Constructor] {
@@ -37,18 +37,18 @@ func NewLogDecorator(ef ext.IExt, logger logging.ILogger) (ext.IExt, error) {
 		return nil, err
 	}
 	return &LogDecorator{
-		ext: ef,
-		l:   logger,
+		Ext: ef,
+		L:   logger,
 	}, nil
 }
 
-func (ld *LogDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	filteredArtifact, ok := ld.ext.FilterArtifact(artifact)
-	ld.l.Debug("Ext filtered", "Artifact", filteredArtifact, "Matched", ok)
-	return filteredArtifact, ok
+func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
+	filteredArtifact, keep := ld.Ext.FilterArtifact(artifact)
+	ld.L.Debug("Ext filtered", "Artifact", filteredArtifact, "Keep", keep)
+	return filteredArtifact, keep
 }
 
 func (ld *LogDecorator) SetTargetExts(targetExts []string) error {
-	ld.l.Debug("Setting", "Target Exts", targetExts)
-	return ld.ext.SetTargetExts(targetExts)
+	ld.L.Debug("Setting", "Target Exts", targetExts)
+	return ld.Ext.SetTargetExts(targetExts)
 }

@@ -3,14 +3,14 @@ package handleerr
 import (
 	"errors"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter/ext"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/ext/decorator"
+	"github.com/darthbanana13/artifact-selector/pkg/filter"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/decorator"
 	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
-	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
 type HandleErrDecorator struct {
-	ext ext.IExt
+	Ext ext.IExt
 }
 
 func HandleErrConstructorDecorator() funcdecorator.FunctionDecorator[decorator.Constructor] {
@@ -33,19 +33,19 @@ func NewHandleErrDecorator(ext ext.IExt) (ext.IExt, error) {
 		return nil, decorator.NilExtDecoratorErr(errors.New("ExtFilter/IExt cannot be nil"))
 	}
 	return &HandleErrDecorator{
-		ext: ext,
+		Ext: ext,
 	}, nil
 }
 
-func (hed *HandleErrDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	return hed.ext.FilterArtifact(artifact)
+func (hed *HandleErrDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
+	return hed.Ext.FilterArtifact(artifact)
 }
 
 func (hed *HandleErrDecorator) SetTargetExts(targetExts []string) error {
 	if err := CheckValidExts(targetExts); err != nil {
 		return err
 	}
-	return hed.ext.SetTargetExts(targetExts)
+	return hed.Ext.SetTargetExts(targetExts)
 }
 
 func CheckValidExts(exts []string) error {

@@ -14,17 +14,18 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/gretryclient"
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
-	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
+	"github.com/darthbanana13/artifact-selector/pkg/filter"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
-	archfilter 			"github.com/darthbanana13/artifact-selector/pkg/filter/arch"
-	archhandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/handleerr"
-	archlog 				"github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator/log"
-	extfilter 			"github.com/darthbanana13/artifact-selector/pkg/filter/ext"
-	exthandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/ext/decorator/handleerr"
-	extlog 					"github.com/darthbanana13/artifact-selector/pkg/filter/ext/decorator/log"
-	osfilter 				"github.com/darthbanana13/artifact-selector/pkg/filter/os"
-	oshandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/handleerr"
-	oslog 					"github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator/log"
+	archfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch"
+	archhandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/decorator/handleerr"
+	archlog "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/decorator/log"
+	extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext"
+	exthandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/decorator/handleerr"
+	extlog "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/decorator/log"
+	osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os"
+	oshandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/decorator/handleerr"
+	oslog "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/decorator/log"
+	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
 
 	"github.com/urfave/cli/v3"
 )
@@ -41,7 +42,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "github",
 				Aliases: []string{"g"},
-				Value:   "BurntSushi/ripgrep",
+				Value:   "neovim/neovim",
 				Usage:   "Specify the 'user/project_name' to directly look up github projects artifacts",
 				// Required: true,
 			},
@@ -87,12 +88,15 @@ func main() {
 				return err
 			}
 
-			input := make(chan github.Artifact)
+			input := make(chan filter.Artifact)
 			go func() {
 				defer close(input)
 
 				for _, artifact := range info.Artifacts {
-					input <- artifact
+					input <- filter.Artifact{
+						Source:   artifact,
+						Metadata: make(map[string]any),
+					}
 				}
 			}()
 
@@ -124,7 +128,7 @@ func main() {
 			extList := strings.Split(cmd.String("extension"), ",")
 			extF, err := newExtFilter(extList)
 			if err != nil {
-			  return err
+				return err
 			}
 
 			var archStrategy concur.FilterFunc = archF.FilterArtifact
@@ -133,12 +137,17 @@ func main() {
 
 			output := extStrategy.Filter(osStrategy.Filter(archStrategy.Filter(input)))
 
-			artifacts := make([]github.Artifact, 0)
+			artifacts := make([]filter.Artifact, 0)
 			for artifact := range output {
 				artifacts = append(artifacts, artifact)
 			}
-			info.Artifacts = artifacts
-			minfo, err := json.Marshal(info)
+			releases := filter.ReleasesInfo{
+				Version:    info.Version,
+				PreRelease: info.PreRelease,
+				Draft:      info.Draft,
+				Artifacts:  artifacts,
+			}
+			minfo, err := json.Marshal(releases)
 
 			if err != nil {
 				return err

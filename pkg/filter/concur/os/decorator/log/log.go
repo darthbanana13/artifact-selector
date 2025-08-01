@@ -3,16 +3,16 @@ package log
 import (
 	"errors"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter/os"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator"
+	"github.com/darthbanana13/artifact-selector/pkg/filter"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/os"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/decorator"
 	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
-	"github.com/darthbanana13/artifact-selector/pkg/github"
 	logging "github.com/darthbanana13/artifact-selector/pkg/log"
 )
 
 type LogDecorator struct {
-	os os.IOS
-	l  logging.ILogger
+	OS os.IOS
+	L  logging.ILogger
 }
 
 func LogConstructorDecorator(logger logging.ILogger) funcdecorator.FunctionDecorator[decorator.Constructor] {
@@ -37,19 +37,18 @@ func NewLogDecorator(osf os.IOS, logger logging.ILogger) (os.IOS, error) {
 		return nil, err
 	}
 	return &LogDecorator{
-		os: osf,
-		l:  logger,
+		OS: osf,
+		L:  logger,
 	}, nil
 }
 
-func (ld *LogDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	filteredArtifact, ok := ld.os.FilterArtifact(artifact)
-	ld.l.Debug("OS filtered", "Artifact", filteredArtifact, "Matched", ok)
-	return filteredArtifact, ok
+func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
+	filteredArtifact, keep := ld.OS.FilterArtifact(artifact)
+	ld.L.Debug("OS filtered", "Artifact", filteredArtifact, "Keep", keep)
+	return filteredArtifact, keep
 }
 
 func (ld *LogDecorator) SetTargetOS(targetOS string) error {
-	ld.l.Debug("Setting", "Target OS", targetOS)
-	return ld.os.SetTargetOS(targetOS)
+	ld.L.Debug("Setting", "Target OS", targetOS)
+	return ld.OS.SetTargetOS(targetOS)
 }
-

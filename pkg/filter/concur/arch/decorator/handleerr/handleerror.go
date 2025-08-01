@@ -4,14 +4,14 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter/arch"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/arch/decorator"
+	"github.com/darthbanana13/artifact-selector/pkg/filter"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/decorator"
 	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
-	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
 type HandleErrDecorator struct {
-	arch arch.IArch
+	Arch arch.IArch
 }
 
 func HandleErrConstructorDecorator() funcdecorator.FunctionDecorator[decorator.Constructor] {
@@ -35,19 +35,19 @@ func NewHandleErrDecorator(arch arch.IArch) (arch.IArch, error) {
 		return nil, decorator.NilArchDecoratorErr(errors.New("ArchFilter/IArch cannot be nil"))
 	}
 	return &HandleErrDecorator{
-		arch: arch,
+		Arch: arch,
 	}, nil
 }
 
-func (hed *HandleErrDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	return hed.arch.FilterArtifact(artifact)
+func (hed *HandleErrDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
+	return hed.Arch.FilterArtifact(artifact)
 }
 
 func (hed *HandleErrDecorator) SetTargetArch(targetArch string) error {
 	if err := CheckValidArch(targetArch); err != nil {
 		return err
 	}
-	return hed.arch.SetTargetArch(targetArch)
+	return hed.Arch.SetTargetArch(targetArch)
 }
 
 func CheckValidArch(archName string) error {

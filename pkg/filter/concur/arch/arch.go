@@ -3,8 +3,8 @@ package arch
 import (
 	"strings"
 
+	"github.com/darthbanana13/artifact-selector/pkg/filter"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/separator"
-	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
 var ArchMap = map[string][]string{
@@ -35,16 +35,18 @@ func NewArchFilter(targetArch string) (IArch, error) {
 	return a, a.SetTargetArch(targetArch)
 }
 
-func (a *Arch) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	if MatchesArch(artifact.FileName, a.TargetArch) {
+func (a *Arch) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
+	if MatchesArch(artifact.Source.FileName, a.TargetArch) {
+		artifact.Metadata["arch"] = "exact"
 		return artifact, true
-	} else if a.TargetArch == "x86_64" && !MatchesOtherArch(artifact.FileName, a.TargetArch) {
+	} else if a.TargetArch == "x86_64" && !MatchesOtherArch(artifact.Source.FileName, a.TargetArch) {
+		artifact.Metadata["arch"] = "missing"
 		return artifact, true
 	}
 	return artifact, false
 }
 
-//TODO: Cache all the regexes for better performance
+// TODO: Cache all the regexes for better performance
 func MatchesArch(fileName string, targetArch string) bool {
 	for _, alias := range ArchMap[targetArch] {
 		r := separator.MakeAliasRegex(alias)

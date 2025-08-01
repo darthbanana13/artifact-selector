@@ -4,14 +4,14 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter/os"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/os/decorator"
+	"github.com/darthbanana13/artifact-selector/pkg/filter"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/os"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/decorator"
 	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
-	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
 type HandleErrDecorator struct {
-	os os.IOS
+	OS os.IOS
 }
 
 func HandleErrConstructorDecorator() funcdecorator.FunctionDecorator[decorator.Constructor] {
@@ -35,19 +35,19 @@ func NewHandleErrDecorator(os os.IOS) (os.IOS, error) {
 		return nil, decorator.NilOSDecoratorErr(errors.New("OSFilter/IOS cannot be nil"))
 	}
 	return &HandleErrDecorator{
-		os: os,
+		OS: os,
 	}, nil
 }
 
-func (hed *HandleErrDecorator) FilterArtifact(artifact github.Artifact) (github.Artifact, bool) {
-	return hed.os.FilterArtifact(artifact)
+func (hed *HandleErrDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
+	return hed.OS.FilterArtifact(artifact)
 }
 
 func (hed *HandleErrDecorator) SetTargetOS(targetOS string) error {
 	if err := CheckValidOS(targetOS); err != nil {
 		return err
 	}
-	return hed.os.SetTargetOS(targetOS)
+	return hed.OS.SetTargetOS(targetOS)
 }
 
 func CheckValidOS(osName string) error {
