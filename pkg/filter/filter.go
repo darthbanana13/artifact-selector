@@ -13,7 +13,6 @@ type ReleasesInfo struct {
 
 type Artifact struct {
 	Source   github.Artifact
-	Rank     uint
 	Metadata map[string]any
 }
 

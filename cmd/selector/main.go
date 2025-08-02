@@ -27,6 +27,8 @@ import (
 	oslog "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/decorator/log"
 	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
 
+	"github.com/darthbanana13/artifact-selector/pkg/filter/linuxbindiff"
+
 	"github.com/urfave/cli/v3"
 )
 
@@ -75,7 +77,6 @@ func main() {
 		//TODO: Clean up this funcion
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			logAdapter := retryclient.NewLeveledLoggerAdapter(&logger)
-			// fetcher := github.NewDefaultHttpFetcher()
 			fetcher := github.NewHttpFetcher(retryclient.NewRetryClient(3, logAdapter))
 			fetcherL, err := login.NewLoginDecorator(fetcher, strings.TrimSpace(cmd.String("token")))
 			if err != nil {
@@ -103,7 +104,6 @@ func main() {
 			// TODO: Add 4 more filters:
 			//  xz (deb), for debs compressed with zst (lsd-rs/lsd), or a generic regex that can be applied multiple times
 			//  musl/gnu (for musl vs gnu libc)
-			//  size difference (for example, if a file is an order of magnitude smaller than other artifacts, it's probably a text file) (mikefarah/yq)
 			//  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
 			newArchFilter := funcdecorator.DecorateFunction(archfilter.NewArchFilter,
 				archhandleerr.HandleErrConstructorDecorator(),
@@ -135,7 +135,7 @@ func main() {
 			var osStrategy concur.FilterFunc = osF.FilterArtifact
 			var extStrategy concur.FilterFunc = extF.FilterArtifact
 
-			output := extStrategy.Filter(osStrategy.Filter(archStrategy.Filter(input)))
+			output := linuxbindiff.Filter(extStrategy.Filter(osStrategy.Filter(archStrategy.Filter(input))))
 
 			artifacts := make([]filter.Artifact, 0)
 			for artifact := range output {
