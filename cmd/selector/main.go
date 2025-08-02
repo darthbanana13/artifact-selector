@@ -7,11 +7,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/darthbanana13/artifact-selector/pkg/ghandledecorate"
 	"github.com/darthbanana13/artifact-selector/pkg/github"
-	"github.com/darthbanana13/artifact-selector/pkg/glogdecorate"
-	"github.com/darthbanana13/artifact-selector/pkg/glogindecorate"
-	"github.com/darthbanana13/artifact-selector/pkg/gretryclient"
+	glogdecorator "github.com/darthbanana13/artifact-selector/pkg/github/decorator/log"
+	"github.com/darthbanana13/artifact-selector/pkg/github/decorator/handleerr"
+	"github.com/darthbanana13/artifact-selector/pkg/github/decorator/login"
+	"github.com/darthbanana13/artifact-selector/pkg/github/retryclient"
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
 	"github.com/darthbanana13/artifact-selector/pkg/filter"
@@ -74,15 +74,15 @@ func main() {
 		},
 		//TODO: Clean up this funcion
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			logAdapter := gretryclient.NewLeveledLoggerAdapter(&logger)
+			logAdapter := retryclient.NewLeveledLoggerAdapter(&logger)
 			// fetcher := github.NewDefaultHttpFetcher()
-			fetcher := github.NewHttpFetcher(gretryclient.NewRetryClient(3, logAdapter))
-			fetcherL, err := glogindecorate.NewLoginDecorator(fetcher, strings.TrimSpace(cmd.String("token")))
+			fetcher := github.NewHttpFetcher(retryclient.NewRetryClient(3, logAdapter))
+			fetcherL, err := login.NewLoginDecorator(fetcher, strings.TrimSpace(cmd.String("token")))
 			if err != nil {
 				return err
 			}
-			fetcherE := ghandledecorate.NewHandleErrorDecorator(fetcherL)
-			fetcherD := glogdecorate.NewLogFetcherDecorator(&logger, fetcherE)
+			fetcherE := handleerr.NewHandleErrorDecorator(fetcherL)
+			fetcherD := glogdecorator.NewLogFetcherDecorator(&logger, fetcherE)
 			info, err := fetcherD.FetchArtifacts(cmd.String("github"))
 			if err != nil {
 				return err

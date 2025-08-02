@@ -1,4 +1,4 @@
-package gretryclient
+package retryclient
 
 import (
 	"github.com/darthbanana13/artifact-selector/pkg/log"

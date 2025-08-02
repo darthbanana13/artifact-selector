@@ -1,4 +1,4 @@
-package glogdecorate
+package log
 
 import (
 	"bytes"

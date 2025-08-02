@@ -1,4 +1,4 @@
-package gretryclient
+package retryclient
 
 import (
 	"net/http"

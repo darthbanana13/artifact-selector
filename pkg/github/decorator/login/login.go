@@ -1,4 +1,4 @@
-package glogindecorate
+package login
 
 import (
 	"fmt"
@@ -15,8 +15,8 @@ var (
 )
 
 type LoginDecorator struct {
-	ft github.FetcherTemplate
-	t  string
+	Ft github.FetcherTemplate
+	Token  string
 	github.IFetcher
 }
 
@@ -24,17 +24,17 @@ func NewLoginDecorator(fetcher github.IFetcher, token string) (*LoginDecorator, 
 	if !IsValidGithubToken(token) {
 		return nil, fmt.Errorf("Invalid GitHub token format")
 	}
-	d := &LoginDecorator{
+	ld := &LoginDecorator{
 		IFetcher: fetcher,
-		t:        token,
+		Token:        token,
 	}
-	d.ft = github.FetcherTemplate{IFetcher: d}
-	return d, nil
+	ld.Ft = github.FetcherTemplate{IFetcher: ld}
+	return ld, nil
 }
 
-func (d *LoginDecorator) PrepareRequest(url string) *http.Request {
-	req := d.IFetcher.PrepareRequest(url)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", d.t))
+func (ld *LoginDecorator) PrepareRequest(url string) *http.Request {
+	req := ld.IFetcher.PrepareRequest(url)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", ld.Token))
 	return req
 }
 
