@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/darthbanana13/artifact-selector/pkg/github"
-	glogdecorator "github.com/darthbanana13/artifact-selector/pkg/github/decorator/log"
 	"github.com/darthbanana13/artifact-selector/pkg/github/decorator/handleerr"
+	glogdecorator "github.com/darthbanana13/artifact-selector/pkg/github/decorator/log"
 	"github.com/darthbanana13/artifact-selector/pkg/github/decorator/login"
 	"github.com/darthbanana13/artifact-selector/pkg/github/retryclient"
 	"github.com/darthbanana13/artifact-selector/pkg/log"
@@ -25,9 +26,14 @@ import (
 	osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os"
 	oshandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/decorator/handleerr"
 	oslog "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/decorator/log"
+
+	"github.com/darthbanana13/artifact-selector/pkg/filter/extractor"
+	extext "github.com/darthbanana13/artifact-selector/pkg/filter/extractor/ext"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/extractor/withinsize"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/extractor/max"
 	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter/linuxbindiff"
+	// "github.com/darthbanana13/artifact-selector/pkg/filter/linuxbindiff"
 
 	"github.com/urfave/cli/v3"
 )
@@ -131,11 +137,36 @@ func main() {
 				return err
 			}
 
-			var archStrategy concur.FilterFunc = archF.FilterArtifact
-			var osStrategy concur.FilterFunc = osF.FilterArtifact
-			var extStrategy concur.FilterFunc = extF.FilterArtifact
+			// binsize := make(chan uint64, len(info.Artifacts))
+			binsize := make(chan uint64)
+			//TODO: Test more if including appimage is a good idea
+			extr, err := extext.NewExt([]string{extfilter.LINUXBINARY, "appimage"}, binsize)
+			if err != nil {
+				return err
+			}
 
-			output := linuxbindiff.Filter(extStrategy.Filter(osStrategy.Filter(archStrategy.Filter(input))))
+			var (
+				archStrategy				concur.FilterFunc = archF.FilterArtifact
+				osStrategy 					concur.FilterFunc = osF.FilterArtifact
+				extStrategy 				concur.FilterFunc = extF.FilterArtifact
+			)
+			extractorStrategy, err := extractor.NewExtractor(extr)
+
+			var withinSizeOnce sync.Once
+			var withinSizeF *withinsize.WithinSize
+			var withinSizeStrategy concur.FilterFunc = func(a filter.Artifact) (filter.Artifact, bool) {
+				withinSizeOnce.Do(func() {
+					withinSizeF, err = withinsize.NewWithinSize(max.Find(binsize), 20, []string{extfilter.LINUXBINARY})
+				})
+				if err != nil {
+					//TODO: How do we return an error here? I guess we bypass the filter?
+					return a, true
+				}
+				return withinSizeF.FilterArtifact(a)
+			}
+
+			// output := linuxbindiff.Filter(extStrategy.Filter(osStrategy.Filter(archStrategy.Filter(input))))
+			output := withinSizeStrategy.Filter(osStrategy.Filter(archStrategy.Filter(extractorStrategy.Extract(extStrategy.Filter(input)))))
 
 			artifacts := make([]filter.Artifact, 0)
 			for artifact := range output {

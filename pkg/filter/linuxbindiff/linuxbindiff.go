@@ -92,8 +92,7 @@ func PercentDiff(a, b uint64) float64 {
 		return 0
 	}
 
-	fa := float64(a)
-	fb := float64(b)
+	fa, fb := float64(a), float64(b)
 
 	num := math.Abs(fa - fb)
 	den := (fa + fb) / 2
