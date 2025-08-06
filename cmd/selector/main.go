@@ -8,11 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/darthbanana13/artifact-selector/pkg/github"
-	"github.com/darthbanana13/artifact-selector/pkg/github/decorator/handleerr"
-	glogdecorator "github.com/darthbanana13/artifact-selector/pkg/github/decorator/log"
-	"github.com/darthbanana13/artifact-selector/pkg/github/decorator/login"
-	"github.com/darthbanana13/artifact-selector/pkg/github/retryclient"
+	"github.com/darthbanana13/artifact-selector/pkg/github/builder"
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
 	"github.com/darthbanana13/artifact-selector/pkg/filter"
@@ -82,15 +78,16 @@ func main() {
 		},
 		//TODO: Clean up this funcion
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			logAdapter := retryclient.NewLeveledLoggerAdapter(&logger)
-			fetcher := github.NewHttpFetcher(retryclient.NewRetryClient(3, logAdapter))
-			fetcherL, err := login.NewLoginDecorator(fetcher, strings.TrimSpace(cmd.String("token")))
+			fetcher, err := builder.NewGihubFetcher().
+				WithLogger(&logger).
+				WithRetry(3).
+				WithLogin(strings.TrimSpace(cmd.String("token"))).
+				Build()
+
 			if err != nil {
 				return err
 			}
-			fetcherE := handleerr.NewHandleErrorDecorator(fetcherL)
-			fetcherD := glogdecorator.NewLogFetcherDecorator(&logger, fetcherE)
-			info, err := fetcherD.FetchArtifacts(cmd.String("github"))
+			info, err := fetcher.FetchArtifacts(cmd.String("github"))
 			if err != nil {
 				return err
 			}

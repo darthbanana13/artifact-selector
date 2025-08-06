@@ -16,7 +16,7 @@ type LogDecorator struct {
 	github.IFetcher
 }
 
-func NewLogFetcherDecorator(logger log.ILogger, fetcher github.IFetcher) *LogDecorator {
+func NewLogFetcherDecorator(fetcher github.IFetcher, logger log.ILogger) *LogDecorator {
 	ld := &LogDecorator{
 		L:        logger,
 		IFetcher: fetcher,

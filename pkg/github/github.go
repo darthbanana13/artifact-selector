@@ -67,10 +67,10 @@ func (f *FetcherTemplate) FetchArtifacts(userRepo string) (ReleasesInfo, error) 
 	}
 
 	resp, err := f.DoGetRequest(f.PrepareRequest(repoUrl))
-	defer resp.Body.Close()
 	if err != nil {
 		return ReleasesInfo{}, err
 	}
+	defer resp.Body.Close()
 
 	body, err := f.ReadResponseBody(resp.Body)
 	if err != nil {
