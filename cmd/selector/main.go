@@ -90,7 +90,7 @@ func main() {
 				return err
 			}
 
-			artifacts, err := fetcherconcur.FetchArtifacts(fetcher, cmd.String("github"))
+			artifacts, info, err := fetcherconcur.FetchArtifacts(fetcher, cmd.String("github"))
 			if err != nil {
 				return err
 			}

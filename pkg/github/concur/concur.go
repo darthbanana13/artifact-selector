@@ -4,11 +4,11 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/github"
 )
 
-func FetchArtifacts(fetcher github.IFetcher, userRepo string) (<-chan github.Artifact, error) {
+func FetchArtifacts(fetcher github.IFetcher, userRepo string) (<-chan github.Artifact, github.ReleasesInfo, error) {
 	info, err := fetcher.FetchArtifacts(userRepo)
 
 	if err != nil {
-		return nil, err
+		return nil, info, err
 	}
 
 	output := make(chan github.Artifact)
@@ -18,5 +18,5 @@ func FetchArtifacts(fetcher github.IFetcher, userRepo string) (<-chan github.Art
 			output <- artifact
 		}
 	}()
-	return output, nil
+	return output, info, nil
 }
