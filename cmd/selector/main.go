@@ -9,10 +9,12 @@ import (
 	"sync"
 
 	"github.com/darthbanana13/artifact-selector/pkg/github/builder"
+	fetcherconcur "github.com/darthbanana13/artifact-selector/pkg/github/concur"
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
 	"github.com/darthbanana13/artifact-selector/pkg/filter"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/transmute"
 	archfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch"
 	archhandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/decorator/handleerr"
 	archlog "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/decorator/log"
@@ -87,22 +89,13 @@ func main() {
 			if err != nil {
 				return err
 			}
-			info, err := fetcher.FetchArtifacts(cmd.String("github"))
+
+			artifacts, err := fetcherconcur.FetchArtifacts(fetcher, cmd.String("github"))
 			if err != nil {
 				return err
 			}
 
-			input := make(chan filter.Artifact)
-			go func() {
-				defer close(input)
-
-				for _, artifact := range info.Artifacts {
-					input <- filter.Artifact{
-						Source:   artifact,
-						Metadata: make(map[string]any),
-					}
-				}
-			}()
+			input := transmute.ToFilter(artifacts)
 
 			// TODO: Add 4 more filters:
 			//  xz (deb), for debs compressed with zst (lsd-rs/lsd), or a generic regex that can be applied multiple times
@@ -165,15 +158,15 @@ func main() {
 			// output := linuxbindiff.Filter(extStrategy.Filter(osStrategy.Filter(archStrategy.Filter(input))))
 			output := withinSizeStrategy.Filter(osStrategy.Filter(archStrategy.Filter(extractorStrategy.Extract(extStrategy.Filter(input)))))
 
-			artifacts := make([]filter.Artifact, 0)
+			artifactss := make([]filter.Artifact, 0)
 			for artifact := range output {
-				artifacts = append(artifacts, artifact)
+				artifactss = append(artifactss, artifact)
 			}
 			releases := filter.ReleasesInfo{
 				Version:    info.Version,
 				PreRelease: info.PreRelease,
 				Draft:      info.Draft,
-				Artifacts:  artifacts,
+				Artifacts:  artifactss,
 			}
 			minfo, err := json.Marshal(releases)
 
