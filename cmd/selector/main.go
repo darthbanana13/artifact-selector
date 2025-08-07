@@ -15,21 +15,15 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/filter"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/transmute"
-	archfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch"
-	archhandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/decorator/handleerr"
-	archlog "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/decorator/log"
+	archbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/builder"
 	extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext"
-	exthandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/decorator/handleerr"
-	extlog "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/decorator/log"
-	osfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os"
-	oshandleerr "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/decorator/handleerr"
-	oslog "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/decorator/log"
+	extbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/builder"
+	osbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/builder"
 
 	"github.com/darthbanana13/artifact-selector/pkg/filter/extractor"
 	extext "github.com/darthbanana13/artifact-selector/pkg/filter/extractor/ext"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/extractor/withinsize"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/extractor/max"
-	"github.com/darthbanana13/artifact-selector/pkg/funcdecorator"
 
 	// "github.com/darthbanana13/artifact-selector/pkg/filter/linuxbindiff"
 
@@ -101,28 +95,25 @@ func main() {
 			//  xz (deb), for debs compressed with zst (lsd-rs/lsd), or a generic regex that can be applied multiple times
 			//  musl/gnu (for musl vs gnu libc)
 			//  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
-			newArchFilter := funcdecorator.DecorateFunction(archfilter.NewArchFilter,
-				archhandleerr.HandleErrConstructorDecorator(),
-				archlog.LogConstructorDecorator(&logger),
-			)
-			archF, err := newArchFilter(cmd.String("arch"))
+			archStrategy, err := archbuilder.NewArchFilterBuilder().
+				WithLogger(&logger).
+				WithArch(cmd.String("arch")).
+				Build()
+
 			if err != nil {
 				return err
 			}
-			newOSFilter := funcdecorator.DecorateFunction(osfilter.NewOSFilter,
-				oshandleerr.HandleErrConstructorDecorator(),
-				oslog.LogConstructorDecorator(&logger),
-			)
-			osF, err := newOSFilter(cmd.String("os"))
+			osStrategy, err := osbuilder.NewOSFilterBuilder().
+				WithLogger(&logger).
+				WithOS(cmd.String("os")).
+				Build()
 			if err != nil {
 				return err
 			}
-			newExtFilter := funcdecorator.DecorateFunction(extfilter.NewExtFilter,
-				exthandleerr.HandleErrConstructorDecorator(),
-				extlog.LogConstructorDecorator(&logger),
-			)
-			extList := strings.Split(cmd.String("extension"), ",")
-			extF, err := newExtFilter(extList)
+			extStrategy, err := extbuilder.NewExtFilterBuilder().
+				WithLogger(&logger).
+				WithExts(strings.Split(cmd.String("extension"), ",")).
+				Build()
 			if err != nil {
 				return err
 			}
@@ -135,11 +126,6 @@ func main() {
 				return err
 			}
 
-			var (
-				archStrategy				concur.FilterFunc = archF.FilterArtifact
-				osStrategy 					concur.FilterFunc = osF.FilterArtifact
-				extStrategy 				concur.FilterFunc = extF.FilterArtifact
-			)
 			extractorStrategy, err := extractor.NewExtractor(extr)
 
 			var withinSizeOnce sync.Once
