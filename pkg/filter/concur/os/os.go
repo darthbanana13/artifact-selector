@@ -43,7 +43,7 @@ func (o *OS) TargetOS() string {
 	return o.targetOS
 }
 
-func NewOSFilter(targetOS string) (IOS, error) {
+func NewOS(targetOS string) (IOS, error) {
 	o := &OS{}
 	err := o.SetTargetOS(targetOS)
 	return o, err

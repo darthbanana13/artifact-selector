@@ -11,24 +11,23 @@ import (
 )
 
 type LogDecorator struct {
-	Ext  ext.IExt
-	L    logging.ILogger
-	Name string
+	Ext ext.IExt
+	L   logging.ILogger
 }
 
-func LogConstructorDecorator(logger logging.ILogger, name string) funcdecorator.FunctionDecorator[decorator.Constructor] {
+func LogConstructorDecorator(logger logging.ILogger) funcdecorator.FunctionDecorator[decorator.Constructor] {
 	return func(efc decorator.Constructor) decorator.Constructor {
 		return func(targetExts []string) (ext.IExt, error) {
 			ef, err := efc(targetExts)
 			if err != nil {
 				return ef, err
 			}
-			return NewLogDecorator(ef, logger, name)
+			return NewLogDecorator(ef, logger)
 		}
 	}
 }
 
-func NewLogDecorator(ef ext.IExt, logger logging.ILogger, name string) (ext.IExt, error) {
+func NewLogDecorator(ef ext.IExt, logger logging.ILogger) (ext.IExt, error) {
 	if logger == nil {
 		return nil, decorator.NilExtDecoratorErr(errors.New("Logger can not be nil!"))
 	}
@@ -38,19 +37,18 @@ func NewLogDecorator(ef ext.IExt, logger logging.ILogger, name string) (ext.IExt
 		return nil, err
 	}
 	return &LogDecorator{
-		Ext:  ef,
-		L:    logger,
-		Name: name,
+		Ext: ef,
+		L:   logger,
 	}, nil
 }
 
 func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	filteredArtifact, keep := ld.Ext.FilterArtifact(artifact)
-	ld.L.Debug("Ext filtered", "Decorator", ld.Name, "Artifact", filteredArtifact, "Keep", keep)
+	ld.L.Debug("Extractor Ext filtered", "Artifact", filteredArtifact, "Keep", keep)
 	return filteredArtifact, keep
 }
 
 func (ld *LogDecorator) SetTargetExts(targetExts []string) error {
-	ld.L.Debug("Setting", "Decorator", ld.Name, "Target Exts", targetExts)
+	ld.L.Debug("Extracting", "Target Exts", targetExts)
 	return ld.Ext.SetTargetExts(targetExts)
 }

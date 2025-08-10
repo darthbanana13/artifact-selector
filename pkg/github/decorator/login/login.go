@@ -15,8 +15,8 @@ var (
 )
 
 type LoginDecorator struct {
-	Ft github.FetcherTemplate
-	Token  string
+	Ft    github.FetcherTemplate
+	Token string
 	github.IFetcher
 }
 
@@ -26,7 +26,7 @@ func NewLoginDecorator(fetcher github.IFetcher, token string) (*LoginDecorator, 
 	}
 	ld := &LoginDecorator{
 		IFetcher: fetcher,
-		Token:        token,
+		Token:    token,
 	}
 	ld.Ft = github.FetcherTemplate{IFetcher: ld}
 	return ld, nil

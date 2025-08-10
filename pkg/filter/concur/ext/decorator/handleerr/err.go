@@ -9,3 +9,5 @@ type UnsupportedExtErr struct {
 func (e UnsupportedExtErr) Error() string {
 	return fmt.Sprintf("unsupported extension: %s", e.Ext)
 }
+
+type EmptyExtsErr error

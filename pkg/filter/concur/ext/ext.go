@@ -61,8 +61,10 @@ type Ext struct {
 	TargetExts []string
 }
 
-func NewExtFilter(targetExts []string) (IExt, error) {
-	return &Ext{TargetExts: targetExts}, nil
+func NewExt(targetExts []string) (IExt, error) {
+	e := &Ext{}
+	err := e.SetTargetExts(targetExts)
+	return e, err
 }
 
 func (e *Ext) SetTargetExts(targetExts []string) error {

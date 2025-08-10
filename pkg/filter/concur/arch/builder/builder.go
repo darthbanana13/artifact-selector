@@ -13,14 +13,14 @@ import (
 )
 
 type ArchFilterBuilder struct {
-	decorators []funcdecorator.FunctionDecorator[decorator.Constructor]
-	logger log.ILogger
-	arch   string
+	Decorators []funcdecorator.FunctionDecorator[decorator.Constructor]
+	L          log.ILogger
+	Arch       string
 }
 
-func NewArchFilterBuilder() *ArchFilterBuilder {
+func NewArchBuilder() *ArchFilterBuilder {
 	afb := &ArchFilterBuilder{
-		decorators: []funcdecorator.FunctionDecorator[decorator.Constructor]{
+		Decorators: []funcdecorator.FunctionDecorator[decorator.Constructor]{
 			handleerr.HandleErrConstructorDecorator(),
 		},
 	}
@@ -28,30 +28,29 @@ func NewArchFilterBuilder() *ArchFilterBuilder {
 }
 
 func (afb *ArchFilterBuilder) WithLogger(l log.ILogger) *ArchFilterBuilder {
-	afb.decorators = append(afb.decorators, logger.LogConstructorDecorator(l))
+	afb.Decorators = append(afb.Decorators, logger.LogConstructorDecorator(l))
 	return afb
 }
 
 func (afb *ArchFilterBuilder) WithArch(arch string) *ArchFilterBuilder {
-	afb.arch = arch
+	afb.Arch = arch
 	return afb
 }
 
 func (afb *ArchFilterBuilder) Build() (concur.FilterFunc, error) {
-	if afb.arch == "" {
+	if afb.Arch == "" {
 		return nil, errors.New("Architecture is required for ArchFilterBuilder")
 	}
 
 	constructor := funcdecorator.DecorateFunction[decorator.Constructor](
-		arch.NewArchFilter,
-		afb.decorators...,
+		arch.NewArch,
+		afb.Decorators...,
 	)
 
-	arch, err := constructor(afb.arch)
+	arch, err := constructor(afb.Arch)
 	if err != nil {
 		return nil, err
 	}
 
 	return arch.FilterArtifact, nil
 }
-

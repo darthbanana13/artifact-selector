@@ -12,45 +12,65 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 )
 
-type ExtFilterBuilder struct {
-	decorators []funcdecorator.FunctionDecorator[decorator.Constructor]
-	exts       []string
+type ExtBuilder struct {
+	Decorators  []funcdecorator.FunctionDecorator[decorator.Constructor]
+	Exts        []string
+	L           log.ILogger
+	Lname       string
+	Constructor decorator.Constructor //strategy
 }
 
-func NewExtFilterBuilder() *ExtFilterBuilder {
-	efb := &ExtFilterBuilder{
-		decorators: []funcdecorator.FunctionDecorator[decorator.Constructor]{
+func NewExtFilterBuilder() *ExtBuilder {
+	eb := &ExtBuilder{
+		Decorators: []funcdecorator.FunctionDecorator[decorator.Constructor]{
 			handleerr.HandleErrConstructorDecorator(),
 		},
 	}
-	return efb
+	return eb
 }
 
-func (efb *ExtFilterBuilder) WithLogger(l log.ILogger) *ExtFilterBuilder {
-	efb.decorators = append(efb.decorators, logger.LogConstructorDecorator(l))
-	return efb
+func (eb *ExtBuilder) WithLogger(l log.ILogger) *ExtBuilder {
+	eb.L = l
+	return eb
 }
 
-func (efb *ExtFilterBuilder) WithExts(exts []string) *ExtFilterBuilder {
-	efb.exts = exts
-	return efb
+func (eb *ExtBuilder) WithLoggerName(name string) *ExtBuilder {
+	eb.Lname = name
+	return eb
 }
 
-func (efb *ExtFilterBuilder) Build() (concur.FilterFunc, error) {
-	if len(efb.exts) == 0 {
-		return nil, errors.New("at least one extension is required for ExtFilterBuilder")
+func (eb *ExtBuilder) WithExts(exts []string) *ExtBuilder {
+	eb.Exts = exts
+	return eb
+}
+
+func (eb *ExtBuilder) WithConstructor(constructor decorator.Constructor) *ExtBuilder {
+	eb.Constructor = constructor
+	return eb
+}
+
+func (eb *ExtBuilder) applyLogger() []funcdecorator.FunctionDecorator[decorator.Constructor] {
+	if eb.L == nil {
+		return eb.Decorators
 	}
+	return append(eb.Decorators, logger.LogConstructorDecorator(eb.L, eb.Lname))
+}
+
+func (eb *ExtBuilder) Build() (concur.FilterFunc, error) {
+	if eb.Constructor == nil {
+		return nil, EmptyConstructorErr(errors.New("constructor cannot be nil for ExtFilterBuilder"))
+	}
+	eb.Decorators = eb.applyLogger()
 
 	constructor := funcdecorator.DecorateFunction[decorator.Constructor](
-		ext.NewExtFilter,
-		efb.decorators...,
+		ext.NewExt,
+		eb.Decorators...,
 	)
 
-	extF, err := constructor(efb.exts)
+	extF, err := constructor(eb.Exts)
 	if err != nil {
 		return nil, err
 	}
 
 	return extF.FilterArtifact, nil
 }
-

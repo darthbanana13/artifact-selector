@@ -13,14 +13,14 @@ import (
 )
 
 type OSFilterBuilder struct {
-	decorators []funcdecorator.FunctionDecorator[decorator.Constructor]
-	logger     log.ILogger
-	os         string
+	Decorators []funcdecorator.FunctionDecorator[decorator.Constructor]
+	L          log.ILogger
+	OS         string
 }
 
-func NewOSFilterBuilder() *OSFilterBuilder {
+func NewOSBuilder() *OSFilterBuilder {
 	ofb := &OSFilterBuilder{
-		decorators: []funcdecorator.FunctionDecorator[decorator.Constructor]{
+		Decorators: []funcdecorator.FunctionDecorator[decorator.Constructor]{
 			handleerr.HandleErrConstructorDecorator(),
 		},
 	}
@@ -28,26 +28,26 @@ func NewOSFilterBuilder() *OSFilterBuilder {
 }
 
 func (ofb *OSFilterBuilder) WithLogger(l log.ILogger) *OSFilterBuilder {
-	ofb.decorators = append(ofb.decorators, logger.LogConstructorDecorator(l))
+	ofb.Decorators = append(ofb.Decorators, logger.LogConstructorDecorator(l))
 	return ofb
 }
 
 func (ofb *OSFilterBuilder) WithOS(os string) *OSFilterBuilder {
-	ofb.os = os
+	ofb.OS = os
 	return ofb
 }
 
 func (ofb *OSFilterBuilder) Build() (concur.FilterFunc, error) {
-	if ofb.os == "" {
+	if ofb.OS == "" {
 		return nil, errors.New("OS is required for OSFilterBuilder")
 	}
 
 	constructor := funcdecorator.DecorateFunction[decorator.Constructor](
-		os.NewOSFilter,
-		ofb.decorators...,
+		os.NewOS,
+		ofb.Decorators...,
 	)
 
-	os, err := constructor(ofb.os)
+	os, err := constructor(ofb.OS)
 	if err != nil {
 		return nil, err
 	}

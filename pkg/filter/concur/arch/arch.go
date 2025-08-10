@@ -30,7 +30,7 @@ func (a *Arch) SetTargetArch(targetArch string) error {
 	return nil
 }
 
-func NewArchFilter(targetArch string) (IArch, error) {
+func NewArch(targetArch string) (IArch, error) {
 	a := &Arch{}
 	return a, a.SetTargetArch(targetArch)
 }

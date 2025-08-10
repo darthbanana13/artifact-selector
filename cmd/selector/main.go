@@ -6,24 +6,22 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/darthbanana13/artifact-selector/pkg/github/builder"
 	fetcherconcur "github.com/darthbanana13/artifact-selector/pkg/github/concur"
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
 	"github.com/darthbanana13/artifact-selector/pkg/filter"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/concur"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/transmute"
 	archbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/builder"
 	extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext"
 	extbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/builder"
+	extmetadatafilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata"
 	osbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/builder"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/transmute"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/pipeline"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/tee"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter/extractor"
-	extext "github.com/darthbanana13/artifact-selector/pkg/filter/extractor/ext"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/extractor/withinsize"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/extractor/max"
+	withinsizeBuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/extswithinsize/builder"
 
 	// "github.com/darthbanana13/artifact-selector/pkg/filter/linuxbindiff"
 
@@ -95,64 +93,67 @@ func main() {
 			//  xz (deb), for debs compressed with zst (lsd-rs/lsd), or a generic regex that can be applied multiple times
 			//  musl/gnu (for musl vs gnu libc)
 			//  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
-			archStrategy, err := archbuilder.NewArchFilterBuilder().
+			archStrategy, err := archbuilder.NewArchBuilder().
 				WithLogger(&logger).
 				WithArch(cmd.String("arch")).
 				Build()
-
 			if err != nil {
 				return err
 			}
-			osStrategy, err := osbuilder.NewOSFilterBuilder().
+
+			osStrategy, err := osbuilder.
+				NewOSBuilder().
 				WithLogger(&logger).
 				WithOS(cmd.String("os")).
 				Build()
 			if err != nil {
 				return err
 			}
-			extStrategy, err := extbuilder.NewExtFilterBuilder().
-				WithLogger(&logger).
+
+			extBuilder := extbuilder.
+				NewExtFilterBuilder().
+				WithLogger(&logger)
+
+			extStrategy, err := extBuilder.
 				WithExts(strings.Split(cmd.String("extension"), ",")).
+				WithLoggerName("Extension Filter").
+				WithConstructor(extfilter.NewExt).
 				Build()
 			if err != nil {
 				return err
 			}
 
-			// binsize := make(chan uint64, len(info.Artifacts))
-			binsize := make(chan uint64)
-			//TODO: Test more if including appimage is a good idea
-			extr, err := extext.NewExt([]string{extfilter.LINUXBINARY, "appimage"}, binsize)
+			binaryStrategy, err := extBuilder. //TODO: Test more if including appimage is a good idea
+								WithExts([]string{extfilter.LINUXBINARY, "appimage"}).
+								WithLoggerName("Binary Extractor").
+								WithConstructor(extmetadatafilter.NewExt).
+								Build()
 			if err != nil {
 				return err
 			}
 
-			extractorStrategy, err := extractor.NewExtractor(extr)
+			pipe := pipeline.Process(input, extStrategy)
+			pipe, extractor := tee.Tee(pipe)
+			extractor = pipeline.Process(extractor, binaryStrategy)
 
-			var withinSizeOnce sync.Once
-			var withinSizeF *withinsize.WithinSize
-			var withinSizeStrategy concur.FilterFunc = func(a filter.Artifact) (filter.Artifact, bool) {
-				withinSizeOnce.Do(func() {
-					withinSizeF, err = withinsize.NewWithinSize(max.Find(binsize), 20, []string{extfilter.LINUXBINARY})
-				})
-				if err != nil {
-					//TODO: How do we return an error here? I guess we bypass the filter?
-					return a, true
-				}
-				return withinSizeF.FilterArtifact(a)
-			}
+			withinSizeStrategy, err := withinsizeBuilder.NewWithinSizeFilterBuilder().
+				WithLogger(&logger).
+				WithExts([]string{extfilter.LINUXBINARY}).
+				WithPercentage(20).
+				WithChannelMax(extractor).
+				Build()
 
-			// output := linuxbindiff.Filter(extStrategy.Filter(osStrategy.Filter(archStrategy.Filter(input))))
-			output := withinSizeStrategy.Filter(osStrategy.Filter(archStrategy.Filter(extractorStrategy.Extract(extStrategy.Filter(input)))))
+			pipe = pipeline.Process(pipe, archStrategy, osStrategy, withinSizeStrategy)
 
-			artifactss := make([]filter.Artifact, 0)
-			for artifact := range output {
-				artifactss = append(artifactss, artifact)
+			artifactSlice := make([]filter.Artifact, 0)
+			for artifact := range pipe {
+				artifactSlice = append(artifactSlice, artifact)
 			}
 			releases := filter.ReleasesInfo{
 				Version:    info.Version,
 				PreRelease: info.PreRelease,
 				Draft:      info.Draft,
-				Artifacts:  artifactss,
+				Artifacts:  artifactSlice,
 			}
 			minfo, err := json.Marshal(releases)
 

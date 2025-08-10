@@ -12,9 +12,9 @@ import (
 )
 
 type GithubFetcher struct {
-	Logger 			log.ILogger
-	MaxRetries	int
-	Token				string
+	Logger     log.ILogger
+	MaxRetries int
+	Token      string
 }
 
 func NewGihubFetcher() *GithubFetcher {
@@ -37,7 +37,6 @@ func (gf *GithubFetcher) WithLogin(token string) *GithubFetcher {
 }
 
 func (gf *GithubFetcher) createWithRetry() (github.IFetcher, error) {
-	var fetcher github.IFetcher
 	if gf.MaxRetries == 0 {
 		return github.NewDefaultHttpFetcher(), nil
 	}
@@ -45,7 +44,7 @@ func (gf *GithubFetcher) createWithRetry() (github.IFetcher, error) {
 		return nil, errors.New("Fetcher retry without logger not implemented")
 	}
 	logAdapter := retryclient.NewLeveledLoggerAdapter(gf.Logger)
-	fetcher = github.NewHttpFetcher(retryclient.NewRetryClient(gf.MaxRetries, logAdapter))
+	fetcher := github.NewHttpFetcher(retryclient.NewRetryClient(gf.MaxRetries, logAdapter))
 	return fetcher, nil
 }
 
@@ -63,7 +62,6 @@ func (gf *GithubFetcher) applyLog(fetcher github.IFetcher) github.IFetcher {
 	return glogdecorator.NewLogFetcherDecorator(fetcher, gf.Logger)
 }
 
-
 func (gf *GithubFetcher) Build() (github.IFetcher, error) {
 	fetcher, err := gf.createWithRetry()
 
@@ -72,7 +70,7 @@ func (gf *GithubFetcher) Build() (github.IFetcher, error) {
 	}
 
 	fetcher, err = gf.applyLogin(fetcher)
-	fetcher =	handleerr.NewHandleErrorDecorator(fetcher)
+	fetcher = handleerr.NewHandleErrorDecorator(fetcher)
 	fetcher = gf.applyLog(fetcher)
 
 	return fetcher, err

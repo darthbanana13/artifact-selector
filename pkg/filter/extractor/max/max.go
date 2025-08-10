@@ -2,18 +2,20 @@ package max
 
 import (
 	"sync"
+
+	"github.com/darthbanana13/artifact-selector/pkg/filter"
 )
 
-func Find(input <-chan uint64) uint64 {
+func Find(input <-chan filter.Artifact) uint64 {
 	resultFunction := sync.OnceValue(func() uint64 {
-		var m uint64 = 0
+		var maxSize uint64 = 0
 
 		for value := range input {
-			if value > m {
-				m = value
+			if value.Source.Size > maxSize {
+				maxSize = value.Source.Size
 			}
 		}
-		return m
+		return maxSize
 	})
 	return resultFunction()
 }

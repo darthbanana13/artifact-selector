@@ -15,7 +15,7 @@ var CompressedExtensions = []string{
 	"tar.bz2",
 	"tbz",
 	"tar.zst",
-//The next extensions may not have compression
+	//The next extensions may not have compression
 	"deb",
 	"rpm",
 	"msi",
@@ -23,9 +23,10 @@ var CompressedExtensions = []string{
 	"pkg",
 }
 
-//TODO: Refactor this package into something maintainable
+// TODO: Refactor this package into something maintainable
+//
 //	This filter should apply the same logic for compressed, as it does for binaries
-// 	Looking at cases like mikefarah/yq yq_man_page_only.tar.gz 
+//	Looking at cases like mikefarah/yq yq_man_page_only.tar.gz
 func Filter(artifacts <-chan filter.Artifact) <-chan filter.Artifact {
 	arts := []filter.Artifact{}
 	var maxBinSize, avgCompressed, numCompressed uint64 = 0, 0, 0
@@ -62,7 +63,7 @@ func Filter(artifacts <-chan filter.Artifact) <-chan filter.Artifact {
 					output <- artifact
 				}
 			} else {
-					output <- artifact
+				output <- artifact
 			}
 		}
 		close(output)
