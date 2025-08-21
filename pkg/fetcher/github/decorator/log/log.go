@@ -126,6 +126,6 @@ func (l *Log) ParseJson(r io.Reader) (fetcher.ReleaseInfo, []fetcher.Artifact, e
 	if err != nil {
 		l.L.Info("Error trying to parse the Github JSON response", "Error", err.Error())
 	}
-	l.L.Debug("Parsed json", "JSON Body", info)
+	l.L.Debug("Parsed json", "Release Info", info, "Artifacts", artifacts)
 	return info, artifacts, err
 }

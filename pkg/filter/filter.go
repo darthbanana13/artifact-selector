@@ -12,7 +12,7 @@ type ReleasesInfo struct {
 }
 
 type Artifact struct {
-	Source   fetcher.Artifact
+	fetcher.Artifact
 	Metadata map[string]any
 }
 

@@ -1,4 +1,4 @@
-package transmute
+package convert
 
 import (
 	"github.com/darthbanana13/artifact-selector/pkg/fetcher"
@@ -11,7 +11,7 @@ func ToFilter(artifacts <-chan fetcher.Artifact) <-chan filter.Artifact {
 		defer close(output)
 		for artifact := range artifacts {
 			output <- filter.Artifact{
-				Source:   artifact,
+				Artifact:	artifact,
 				Metadata: make(map[string]any),
 			}
 		}

@@ -18,7 +18,7 @@ import (
 	extbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/builder"
 	extmetadatafilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata"
 	osbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/builder"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/transmute"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/convert"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/tee"
 
@@ -94,7 +94,7 @@ func main() {
 				return err
 			}
 
-			input := transmute.ToFilter(artifacts)
+			input := convert.ToFilter(artifacts)
 
 			// TODO: Add 3 more filters:
 			//  xz (deb), for debs compressed with zst (lsd-rs/lsd), or a generic regex that can be applied multiple times

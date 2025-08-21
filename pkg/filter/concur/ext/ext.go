@@ -74,7 +74,7 @@ func (e *Ext) SetTargetExts(targetExts []string) error {
 
 func (e *Ext) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	for _, ext := range e.TargetExts {
-		if HasExtension(artifact.Source.FileName, artifact.Source.ContentType, ext) {
+		if HasExtension(artifact.FileName, artifact.ContentType, ext) {
 			artifact.Metadata["ext"] = ext
 			return artifact, true
 		}

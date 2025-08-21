@@ -11,8 +11,8 @@ func Find(input <-chan filter.Artifact) uint64 {
 		var maxSize uint64 = 0
 
 		for value := range input {
-			if value.Source.Size > maxSize {
-				maxSize = value.Source.Size
+			if value.Size > maxSize {
+				maxSize = value.Size
 			}
 		}
 		return maxSize

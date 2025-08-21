@@ -38,7 +38,7 @@ func (ws *WithinSize) SetPercentage(percentage float64) error {
 
 func (ws *WithinSize) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if slices.Contains(ws.Exts, artifact.Metadata["ext"].(string)) {
-		if PercentDiff(artifact.Source.Size, ws.MaxSize) <= ws.Percentage {
+		if PercentDiff(artifact.Size, ws.MaxSize) <= ws.Percentage {
 			return artifact, true
 		}
 		return artifact, false
