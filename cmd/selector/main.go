@@ -7,8 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/darthbanana13/artifact-selector/pkg/github/builder"
-	fetcherconcur "github.com/darthbanana13/artifact-selector/pkg/github/concur"
+	"github.com/darthbanana13/artifact-selector/pkg/fetcher"
+	fetcherconcur "github.com/darthbanana13/artifact-selector/pkg/fetcher/concur"
+	"github.com/darthbanana13/artifact-selector/pkg/fetcher/github/builder"
 	"github.com/darthbanana13/artifact-selector/pkg/log"
 
 	"github.com/darthbanana13/artifact-selector/pkg/filter"
@@ -22,8 +23,6 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/filter/tee"
 
 	withinsizeBuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/extswithinsize/builder"
-
-	// "github.com/darthbanana13/artifact-selector/pkg/filter/linuxbindiff"
 
 	"github.com/urfave/cli/v3"
 )
@@ -43,6 +42,12 @@ func main() {
 				Value:   "neovim/neovim",
 				Usage:   "Specify the 'user/project_name' to directly look up github projects artifacts",
 				// Required: true,
+			},
+			&cli.StringFlag{
+				Name:    "version",
+				Aliases: []string{"v"},
+				Value:   "latest",
+				Usage:   "What version of the application artifact to fetch. E.g. latest, v1.2",
 			},
 			&cli.StringFlag{
 				Name:    "extension",
@@ -72,7 +77,7 @@ func main() {
 		},
 		//TODO: Clean up this funcion
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			fetcher, err := builder.NewGihubFetcher().
+			fetcherStrategy, err := builder.NewGihubFetcher().
 				WithLogger(&logger).
 				WithRetry(3).
 				WithLogin(strings.TrimSpace(cmd.String("token"))).
@@ -82,14 +87,16 @@ func main() {
 				return err
 			}
 
-			artifacts, info, err := fetcherconcur.FetchArtifacts(fetcher, cmd.String("github"))
+			f := fetcher.NewFetcher(fetcherStrategy)
+
+			artifacts, info, err := fetcherconcur.FetchArtifacts(f, cmd.String("github"), cmd.String("version"))
 			if err != nil {
 				return err
 			}
 
 			input := transmute.ToFilter(artifacts)
 
-			// TODO: Add 4 more filters:
+			// TODO: Add 3 more filters:
 			//  xz (deb), for debs compressed with zst (lsd-rs/lsd), or a generic regex that can be applied multiple times
 			//  musl/gnu (for musl vs gnu libc)
 			//  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)

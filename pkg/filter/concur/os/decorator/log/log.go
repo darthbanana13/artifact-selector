@@ -18,6 +18,7 @@ type LogDecorator struct {
 func LogConstructorDecorator(logger logging.ILogger) funcdecorator.FunctionDecorator[decorator.Constructor] {
 	return func(ofc decorator.Constructor) decorator.Constructor {
 		return func(targetOS string) (os.IOS, error) {
+			logger.Debug("Setting", "Target OS", targetOS)
 			of, err := ofc(targetOS)
 			if err != nil {
 				return of, err

@@ -18,6 +18,7 @@ type LogDecorator struct {
 func LogConstructorDecorator(logger logging.ILogger) funcdecorator.FunctionDecorator[decorator.Constructor] {
 	return func(afc decorator.Constructor) decorator.Constructor {
 		return func(targetArch string) (arch.IArch, error) {
+			logger.Debug("Setting", "Target Architecture", targetArch)
 			af, err := afc(targetArch)
 			if err != nil {
 				return af, err

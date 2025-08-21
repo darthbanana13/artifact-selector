@@ -91,7 +91,7 @@ func TestFetchArtifacts(t *testing.T) {
 	ml.On("Info", mock.Anything).Twice()
 	ml.On("Debug", mock.Anything).Times(5)
 
-	d := NewLogFetcherDecorator(ml, mf)
+	d := NewLogDecorator(ml, mf)
 	_, err := d.FetchArtifacts("")
 	assert.NoError(t, err)
 	_, err = d.ReadBody(bytes.NewReader(nil))
@@ -109,7 +109,7 @@ func TestErrRepoName(t *testing.T) {
 	ml.On("Debug", mock.Anything).Once()
 	ml.On("Error", mock.Anything).Twice()
 
-	d := NewLogFetcherDecorator(ml, mf)
+	d := NewLogDecorator(ml, mf)
 	_, err := d.FetchArtifacts("")
 	assert.Error(t, err)
 
@@ -129,7 +129,7 @@ func TestErrRequest(t *testing.T) {
 	ml.On("Warn", mock.Anything).Once()
 	ml.On("Error", mock.Anything).Once()
 
-	d := NewLogFetcherDecorator(ml, mf)
+	d := NewLogDecorator(ml, mf)
 	_, err := d.FetchArtifacts("")
 	assert.Error(t, err)
 
@@ -149,7 +149,7 @@ func TestErrParseJson(t *testing.T) {
 	ml.On("Debug", mock.Anything).Times(5)
 	ml.On("Error", mock.Anything).Twice()
 
-	d := NewLogFetcherDecorator(ml, mf)
+	d := NewLogDecorator(ml, mf)
 	_, err := d.FetchArtifacts("")
 	assert.Error(t, err)
 
@@ -164,7 +164,7 @@ func TestErrReadBody(t *testing.T) {
 	ml.On("Debug", mock.Anything).Times(2)
 	ml.On("Error", mock.Anything).Once()
 
-	d := NewLogFetcherDecorator(ml, mf)
+	d := NewLogDecorator(ml, mf)
 	_, err := d.ReadBody(bytes.NewReader(nil))
 	assert.Error(t, err)
 

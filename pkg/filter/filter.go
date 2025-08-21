@@ -1,7 +1,7 @@
 package filter
 
 import (
-	"github.com/darthbanana13/artifact-selector/pkg/github"
+	"github.com/darthbanana13/artifact-selector/pkg/fetcher"
 )
 
 type ReleasesInfo struct {
@@ -12,7 +12,7 @@ type ReleasesInfo struct {
 }
 
 type Artifact struct {
-	Source   github.Artifact
+	Source   fetcher.Artifact
 	Metadata map[string]any
 }
 

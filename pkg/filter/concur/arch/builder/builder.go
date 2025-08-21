@@ -13,7 +13,7 @@ import (
 )
 
 type ArchFilterBuilder struct {
-	Decorators []funcdecorator.FunctionDecorator[decorator.Constructor]
+	Decorators []funcdecorator.FunctionDecorator[decorator.Constructor] //TODO: This does not make the decorator reusable
 	L          log.ILogger
 	Arch       string
 }

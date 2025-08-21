@@ -13,7 +13,6 @@ import (
 )
 
 type ExtBuilder struct {
-	Decorators  []funcdecorator.FunctionDecorator[decorator.Constructor]
 	Exts        []string
 	L           log.ILogger
 	Lname       string
@@ -21,12 +20,7 @@ type ExtBuilder struct {
 }
 
 func NewExtFilterBuilder() *ExtBuilder {
-	eb := &ExtBuilder{
-		Decorators: []funcdecorator.FunctionDecorator[decorator.Constructor]{
-			handleerr.HandleErrConstructorDecorator(),
-		},
-	}
-	return eb
+	return &ExtBuilder{}
 }
 
 func (eb *ExtBuilder) WithLogger(l log.ILogger) *ExtBuilder {
@@ -49,22 +43,25 @@ func (eb *ExtBuilder) WithConstructor(constructor decorator.Constructor) *ExtBui
 	return eb
 }
 
-func (eb *ExtBuilder) applyLogger() []funcdecorator.FunctionDecorator[decorator.Constructor] {
-	if eb.L == nil {
-		return eb.Decorators
+func (eb *ExtBuilder) makeDecorators() []funcdecorator.FunctionDecorator[decorator.Constructor] {
+	decorators := []funcdecorator.FunctionDecorator[decorator.Constructor]{
+		handleerr.HandleErrConstructorDecorator(),
 	}
-	return append(eb.Decorators, logger.LogConstructorDecorator(eb.L, eb.Lname))
+	if eb.L == nil {
+		return decorators
+	}
+	return append(decorators, logger.LogConstructorDecorator(eb.L, eb.Lname))
 }
 
 func (eb *ExtBuilder) Build() (concur.FilterFunc, error) {
 	if eb.Constructor == nil {
 		return nil, EmptyConstructorErr(errors.New("constructor cannot be nil for ExtFilterBuilder"))
 	}
-	eb.Decorators = eb.applyLogger()
+	decorators := eb.makeDecorators()
 
 	constructor := funcdecorator.DecorateFunction[decorator.Constructor](
 		ext.NewExt,
-		eb.Decorators...,
+		decorators...,
 	)
 
 	extF, err := constructor(eb.Exts)

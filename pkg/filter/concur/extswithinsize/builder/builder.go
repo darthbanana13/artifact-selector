@@ -16,7 +16,7 @@ import (
 )
 
 type WithinSizeBuilder struct {
-	decorators []funcdecorator.FunctionDecorator[decorator.Constructor]
+	decorators []funcdecorator.FunctionDecorator[decorator.Constructor] // TODO: This does not make the builder resusable
 	maxChann   <-chan filter.Artifact
 	exts       []string
 	maxSize    uint64

@@ -19,6 +19,7 @@ type LogDecorator struct {
 func LogConstructorDecorator(logger logging.ILogger, name string) funcdecorator.FunctionDecorator[decorator.Constructor] {
 	return func(efc decorator.Constructor) decorator.Constructor {
 		return func(targetExts []string) (ext.IExt, error) {
+			logger.Debug("Setting", "Decorator", name, "Target Exts", targetExts)
 			ef, err := efc(targetExts)
 			if err != nil {
 				return ef, err
@@ -31,11 +32,6 @@ func LogConstructorDecorator(logger logging.ILogger, name string) funcdecorator.
 func NewLogDecorator(ef ext.IExt, logger logging.ILogger, name string) (ext.IExt, error) {
 	if logger == nil {
 		return nil, decorator.NilExtDecoratorErr(errors.New("Logger can not be nil!"))
-	}
-	if ef == nil {
-		err := decorator.NilExtDecoratorErr(errors.New("ExtFilter/IExt cannot be nil"))
-		logger.Info(err.Error())
-		return nil, err
 	}
 	return &LogDecorator{
 		Ext:  ef,

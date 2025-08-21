@@ -13,8 +13,7 @@ import (
 )
 
 type OSFilterBuilder struct {
-	Decorators []funcdecorator.FunctionDecorator[decorator.Constructor]
-	L          log.ILogger
+	Decorators []funcdecorator.FunctionDecorator[decorator.Constructor] //TODO: This does not make the builder resusable
 	OS         string
 }
 

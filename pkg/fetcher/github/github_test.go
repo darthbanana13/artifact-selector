@@ -67,7 +67,7 @@ func expectedNeovimReleasesInfo() ReleasesInfo {
 func TestRepoName(t *testing.T) {
 	var err error
 	mockClient := &HttpMockClient{}
-	f := NewHttpFetcher(mockClient)
+	f := NewGithubFetcher(mockClient)
 
 	_, err = f.FetchArtifacts("neovim")
 	assert.Error(t, err)
@@ -90,7 +90,7 @@ func TestBadRespCode(t *testing.T) {
 	resp := &http.Response{StatusCode: http.StatusCreated, Body: mockBody}
 	mockClient.On("Do", mock.Anything).Return(resp, nil).Once()
 
-	f := NewHttpFetcher(mockClient)
+	f := NewGithubFetcher(mockClient)
 	_, gotErr := f.FetchArtifacts("neovim/neovim")
 
 	assert.Error(t, gotErr)
@@ -105,7 +105,7 @@ func TestBadReq(t *testing.T) {
 	err := fmt.Errorf("The request issued had a problem")
 	mockClient.On("Do", mock.Anything).Return(resp, err).Once()
 
-	f := NewHttpFetcher(mockClient)
+	f := NewGithubFetcher(mockClient)
 	_, gotErr := f.FetchArtifacts("neovim/neovim")
 
 	assert.Error(t, gotErr)
@@ -124,7 +124,7 @@ func TestJsonParsing(t *testing.T) {
 	mockClient := &HttpMockClient{}
 	mockClient.On("Do", mock.Anything).Return(resp, nil).Once()
 
-	f := NewHttpFetcher(mockClient)
+	f := NewGithubFetcher(mockClient)
 	_, gotErr := f.FetchArtifacts("neovim/neovim")
 
 	assert.Error(t, gotErr)
@@ -147,7 +147,7 @@ func TestFetchArtifacts(t *testing.T) {
 		}).
 		Once()
 
-	f := NewHttpFetcher(mockClient)
+	f := NewGithubFetcher(mockClient)
 	gotInfo, gotErr := f.FetchArtifacts("neovim/neovim")
 
 	expectedInfo := expectedNeovimReleasesInfo()
