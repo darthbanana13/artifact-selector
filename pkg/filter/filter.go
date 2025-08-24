@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"maps"
+
 	"github.com/darthbanana13/artifact-selector/pkg/fetcher"
 )
 
@@ -18,4 +20,10 @@ type Artifact struct {
 
 type IFilter interface {
 	Filter(<-chan Artifact) <-chan Artifact
+}
+
+func AddMetadata(metadata map[string]any, key string, val any) map[string]any {
+	var newMetadata = maps.Clone(metadata)
+	newMetadata[key] = val
+	return newMetadata
 }

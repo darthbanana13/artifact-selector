@@ -8,6 +8,12 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/filter/separator"
 )
 
+const (
+	DISTRO  = "distro"
+	BASEOS  = "os"
+	MISSING = "missing"
+)
+
 var OSMap = map[string][]string{
 	"linux":   {"linux64", "linux"},
 	"android": {"android"},
@@ -51,13 +57,13 @@ func NewOS(targetOS string) (IOS, error) {
 
 func (o *OS) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if IsInAliases(o.targetDistroAliases, artifact.FileName) {
-		artifact.Metadata["os"] = "distro"
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", DISTRO)
 		return artifact, true
 	} else if IsInAliases(o.targetOSAliases, artifact.FileName) {
-		artifact.Metadata["os"] = "os"
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", BASEOS)
 		return artifact, true
 	} else if DoesntMatchAliases(o.excludedAliases, artifact.FileName) {
-		artifact.Metadata["os"] = "missing"
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", MISSING)
 		return artifact, true
 	}
 	return artifact, false

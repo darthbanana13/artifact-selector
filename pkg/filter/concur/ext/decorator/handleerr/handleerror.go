@@ -52,10 +52,5 @@ func CheckValidExts(exts []string) error {
 	if len(exts) == 0 {
 		return EmptyExtsErr(errors.New("At least one extension is required"))
 	}
-	for _, e := range exts {
-		if _, ok := ext.ExtensionContentType[e]; !ok {
-			return UnsupportedExtErr{Ext: e}
-		}
-	}
 	return nil
 }

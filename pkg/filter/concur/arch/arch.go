@@ -7,6 +7,11 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/filter/separator"
 )
 
+const (
+	EXACT   = "exact"
+	MISSING = "missing"
+)
+
 var ArchMap = map[string][]string{
 	"x86_64":    {"x86_64", "amd64", "x64", "win64", "linux64"},
 	"x86":       {"x86", "i386", "386", "i486", "i586", "i686", "i786"},
@@ -37,10 +42,10 @@ func NewArch(targetArch string) (IArch, error) {
 
 func (a *Arch) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if MatchesArch(artifact.FileName, a.TargetArch) {
-		artifact.Metadata["arch"] = "exact"
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "arch", EXACT)
 		return artifact, true
 	} else if a.TargetArch == "x86_64" && !MatchesOtherArch(artifact.FileName, a.TargetArch) {
-		artifact.Metadata["arch"] = "missing"
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "arch", MISSING)
 		return artifact, true
 	}
 	return artifact, false

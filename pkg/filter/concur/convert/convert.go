@@ -11,7 +11,7 @@ func ToFilter(artifacts <-chan fetcher.Artifact) <-chan filter.Artifact {
 		defer close(output)
 		for artifact := range artifacts {
 			output <- filter.Artifact{
-				Artifact:	artifact,
+				Artifact: artifact,
 				Metadata: make(map[string]any),
 			}
 		}

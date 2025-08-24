@@ -14,11 +14,12 @@ import (
 
 	"github.com/darthbanana13/artifact-selector/pkg/filter"
 	archbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/builder"
+	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/convert"
 	extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext"
 	extbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/builder"
-	extmetadatafilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata"
+	contenttypebuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata/contenttype/builder"
+	extmetadatafilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata/ext"
 	osbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/builder"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/convert"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/tee"
 
@@ -139,6 +140,14 @@ func main() {
 				return err
 			}
 
+			contentTypeStrategy, err := contenttypebuilder.
+				NewContentTypeFilterBuilder().
+				WithLogger(&logger).
+				Build()
+			if err != nil {
+				return err
+			}
+
 			pipe := pipeline.Process(input, extStrategy)
 			pipe, extractor := tee.Tee(pipe)
 			extractor = pipeline.Process(extractor, binaryStrategy)
@@ -150,7 +159,7 @@ func main() {
 				WithChannelMax(extractor).
 				Build()
 
-			pipe = pipeline.Process(pipe, archStrategy, osStrategy, withinSizeStrategy)
+			pipe = pipeline.Process(pipe, contentTypeStrategy, archStrategy, osStrategy, withinSizeStrategy)
 
 			artifactSlice := make([]filter.Artifact, 0)
 			for artifact := range pipe {
