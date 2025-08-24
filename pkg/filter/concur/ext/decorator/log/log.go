@@ -43,22 +43,13 @@ func NewLogDecorator(ef ext.IExt, logger logging.ILogger, name string) (ext.IExt
 func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	filteredArtifact, keep := ld.Ext.FilterArtifact(artifact)
 
-	val := GetMatchedExt(filteredArtifact.Metadata)
 	ld.L.Debug("Ext filtered",
 		"Decorator", ld.Name,
 		"Artifact", filteredArtifact,
 		"Keep", keep,
-		"Matched extension", val,
+		"Matched extension", filter.GetStringMetadata(filteredArtifact.Metadata, "ext"),
 	)
 	return filteredArtifact, keep
-}
-
-func GetMatchedExt(metadata map[string]any) string {
-	interfaceVal, ok := metadata["ext"]
-	if !ok {
-		return "none"
-	}
-	return interfaceVal.(string)
 }
 
 func (ld *LogDecorator) SetTargetExts(targetExts []string) error {

@@ -40,7 +40,11 @@ func NewLogDecorator(arch arch.IArch, logger logging.ILogger) (arch.IArch, error
 
 func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	filteredArtifact, keep := ld.Arch.FilterArtifact(artifact)
-	ld.L.Debug("Architecture filtered", "Artifact", filteredArtifact, "Keep", keep)
+	ld.L.Debug("Architecture filtered",
+		"Artifact", filteredArtifact,
+		"Keep", keep,
+		"Match Type", filter.GetStringMetadata(filteredArtifact.Metadata, "arch"),
+	)
 	return filteredArtifact, keep
 }
 

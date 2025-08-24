@@ -6,6 +6,10 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/fetcher"
 )
 
+const (
+	NONE = "none"
+)
+
 type ReleasesInfo struct {
 	Version    string
 	PreRelease bool
@@ -26,4 +30,12 @@ func AddMetadata(metadata map[string]any, key string, val any) map[string]any {
 	var newMetadata = maps.Clone(metadata)
 	newMetadata[key] = val
 	return newMetadata
+}
+
+func GetStringMetadata(metadata map[string]any, key string) string {
+	val, ok := metadata[key]
+	if !ok {
+		return NONE
+	}
+	return val.(string)
 }

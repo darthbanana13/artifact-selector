@@ -45,7 +45,11 @@ func NewLogDecorator(osf os.IOS, logger logging.ILogger) (os.IOS, error) {
 
 func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	filteredArtifact, keep := ld.OS.FilterArtifact(artifact)
-	ld.L.Debug("OS filtered", "Artifact", filteredArtifact, "Keep", keep)
+	ld.L.Debug("OS filtered",
+		"Artifact", filteredArtifact,
+		"Keep", keep,
+		"Match Type", filter.GetStringMetadata(filteredArtifact.Metadata, "os"),
+	)
 	return filteredArtifact, keep
 }
 
