@@ -19,23 +19,25 @@ import (
 	extbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/builder"
 	contenttypebuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata/contenttype/builder"
 	extmetadatafilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata/ext"
+	withinsizebuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/extswithinsize/builder"
 	osbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/builder"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/tee"
 
-	withinsizebuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/extswithinsize/builder"
-
+	"github.com/urfave/cli-altsrc/v3"
+	jsonconfig "github.com/urfave/cli-altsrc/v3/json"
 	"github.com/urfave/cli/v3"
 )
 
 func main() {
-	// TODO: Handle different log-levels
-	logger := log.InitLog("dev")
+	var verbosityCount int
+	var logger log.ILogger
 	// TODO: Default values should be based on current OS
 	cmd := &cli.Command{
-		Name:                  "Artifact finder",
-		Usage:                 "Use this utility to find the best artifact according to your specifications",
-		EnableShellCompletion: true,
+		Name:                   "Artifact finder",
+		Usage:                  "Use this utility to find the best artifact according to your specifications",
+		EnableShellCompletion:  true,
+		UseShortOptionHandling: true,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "github",
@@ -45,10 +47,10 @@ func main() {
 				// Required: true,
 			},
 			&cli.StringFlag{
-				Name:    "version",
-				Aliases: []string{"v"},
+				Name:    "release",
+				Aliases: []string{"r"},
 				Value:   "latest",
-				Usage:   "What version of the application artifact to fetch. E.g. latest, v1.2",
+				Usage:   "What release version of the application artifact to fetch. E.g. latest, v1.2",
 			},
 			&cli.StringFlag{
 				Name:    "extension",
@@ -68,18 +70,41 @@ func main() {
 				Value:   "ubuntu",
 				Usage:   "Specify the target OS/Distro. E.g. ubuntu, linux, macos",
 			},
+			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+				Usage:   "Specify the verbosity level, default is none/only errors",
+				Config: cli.BoolConfig{
+					Count: &verbosityCount,
+				},
+			},
+			//TODO: The token should be optional
 			&cli.StringFlag{
 				Name:    "token",
 				Aliases: []string{"t"},
-				Usage:   "Github token",
-				//TODO: This should probably point to XDG_CONFIG_HOME 1st before trying $HOME
-				Sources: cli.Files(os.Getenv("HOME") + "/.config/artifact-selector/github_token"),
+				Usage:   "Github token, either classic or fine-grained with 'repo' scope",
+				Sources: cli.NewValueSourceChain(
+					cli.EnvVar("GITHUB_TOKEN"),
+					jsonconfig.JSON("github_token", altsrc.StringSourcer(os.Getenv("XDG_CONFIG_HOME")+"/artifact-selector/config.json")),
+					jsonconfig.JSON("github_token", altsrc.StringSourcer(os.Getenv("HOME")+"/.config/artifact-selector/config.json")),
+				),
 			},
 		},
 		//TODO: Clean up this funcion
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			var logLevel string
+			switch verbosityCount {
+			case 0:
+				logLevel = log.PROD
+			case 1:
+				logLevel = log.VERBOSE
+			default:
+				logLevel = log.VERYVERBOSE
+			}
+			logger = log.InitLog(logLevel)
+
 			fetcherStrategy, err := builder.NewGihubFetcher().
-				WithLogger(&logger).
+				WithLogger(logger).
 				WithRetry(3).
 				WithLogin(strings.TrimSpace(cmd.String("token"))).
 				Build()
@@ -90,7 +115,7 @@ func main() {
 
 			f := fetcher.NewFetcher(fetcherStrategy)
 
-			artifacts, info, err := fetcherconcur.FetchArtifacts(f, cmd.String("github"), cmd.String("version"))
+			artifacts, info, err := fetcherconcur.FetchArtifacts(f, cmd.String("github"), cmd.String("release"))
 			if err != nil {
 				return err
 			}
@@ -102,7 +127,7 @@ func main() {
 			//  musl/gnu (for musl vs gnu libc)
 			//  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
 			archStrategy, err := archbuilder.NewArchBuilder().
-				WithLogger(&logger).
+				WithLogger(logger).
 				WithArch(cmd.String("arch")).
 				Build()
 			if err != nil {
@@ -111,7 +136,7 @@ func main() {
 
 			osStrategy, err := osbuilder.
 				NewOSBuilder().
-				WithLogger(&logger).
+				WithLogger(logger).
 				WithOS(cmd.String("os")).
 				Build()
 			if err != nil {
@@ -120,7 +145,7 @@ func main() {
 
 			extBuilder := extbuilder.
 				NewExtFilterBuilder().
-				WithLogger(&logger)
+				WithLogger(logger)
 
 			extStrategy, err := extBuilder.
 				WithExts(strings.Split(cmd.String("extension"), ",")).
@@ -152,7 +177,7 @@ func main() {
 
 			contentTypeStrategy, err := contenttypebuilder.
 				NewContentTypeFilterBuilder().
-				WithLogger(&logger).
+				WithLogger(logger).
 				Build()
 			if err != nil {
 				return err
@@ -165,7 +190,7 @@ func main() {
 			compressedExtractor = pipeline.Process(compressedExtractor, compressedStrategy)
 
 			withinSizeBuilder := withinsizebuilder.NewWithinSizeFilterBuilder().
-				WithLogger(&logger).
+				WithLogger(logger).
 				WithPercentage(20)
 
 			binWithinSizeStrategy, err := withinSizeBuilder.
@@ -210,6 +235,9 @@ func main() {
 	}
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
-		logger.Panic(err.Error())
+		if logger != nil {
+			logger.Panic(err.Error())
+		}
+		panic(err.Error())
 	}
 }

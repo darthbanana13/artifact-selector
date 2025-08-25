@@ -11,7 +11,7 @@ type ZapLogger struct {
 	Log *zap.SugaredLogger
 }
 
-func NewZapLogger(conf zap.Config) ZapLogger {
+func NewZapLogger(conf zap.Config) ILogger {
 	logger, err := conf.Build()
 
 	if err != nil {
@@ -22,7 +22,7 @@ func NewZapLogger(conf zap.Config) ZapLogger {
 
 	sugar := logger.Sugar()
 
-	return ZapLogger{Log: sugar}
+	return &ZapLogger{Log: sugar}
 }
 
 func (zl *ZapLogger) Debug(msg string, keysAndValues ...any) {
