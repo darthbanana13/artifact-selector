@@ -23,7 +23,7 @@ import (
 	"github.com/darthbanana13/artifact-selector/pkg/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/tee"
 
-	withinsizeBuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/extswithinsize/builder"
+	withinsizebuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/extswithinsize/builder"
 
 	"github.com/urfave/cli/v3"
 )
@@ -131,11 +131,21 @@ func main() {
 				return err
 			}
 
-			binaryStrategy, err := extBuilder. //TODO: Test more if including appimage is a good idea
-								WithExts([]string{extfilter.LINUXBINARY, "appimage"}).
-								WithLoggerName("Binary Extractor").
-								WithConstructor(extmetadatafilter.NewExt).
-								Build()
+			//TODO: Test more if including appimage is a good idea
+			binaryStrategy, err := extBuilder.
+				WithExts([]string{extfilter.LINUXBINARY, "appimage"}).
+				WithLoggerName("Binary Extractor").
+				WithConstructor(extmetadatafilter.NewExt).
+				Build()
+			if err != nil {
+				return err
+			}
+			compressedExtensions := []string{"deb", "tar.gz", "zip", "tar.xz", "tar.bz2", "tbz", "tar.zst", "rpm"}
+			compressedStrategy, err := extBuilder.
+				WithExts(compressedExtensions).
+				WithLoggerName("Compressed Extractor").
+				WithConstructor(extmetadatafilter.NewExt).
+				Build()
 			if err != nil {
 				return err
 			}
@@ -150,16 +160,33 @@ func main() {
 
 			pipe := pipeline.Process(input, extStrategy)
 			pipe, extractor := tee.Tee(pipe)
-			extractor = pipeline.Process(extractor, binaryStrategy)
+			binExtractor, compressedExtractor := tee.Tee(extractor)
+			binExtractor = pipeline.Process(binExtractor, binaryStrategy)
+			compressedExtractor = pipeline.Process(compressedExtractor, compressedStrategy)
 
-			withinSizeStrategy, err := withinsizeBuilder.NewWithinSizeFilterBuilder().
+			withinSizeBuilder := withinsizebuilder.NewWithinSizeFilterBuilder().
 				WithLogger(&logger).
-				WithExts([]string{extfilter.LINUXBINARY}).
-				WithPercentage(20).
-				WithChannelMax(extractor).
-				Build()
+				WithPercentage(20)
 
-			pipe = pipeline.Process(pipe, contentTypeStrategy, archStrategy, osStrategy, withinSizeStrategy)
+			binWithinSizeStrategy, err := withinSizeBuilder.
+				WithExts([]string{extfilter.LINUXBINARY}).
+				WithLoggerName("Binary Filter").
+				WithChannelMax(binExtractor).
+				Build()
+			if err != nil {
+				return err
+			}
+
+			compressedWithinSizeStrategy, err := withinSizeBuilder.
+				WithExts(compressedExtensions).
+				WithLoggerName("Compressed Filter").
+				WithChannelMax(compressedExtractor).
+				Build()
+			if err != nil {
+				return err
+			}
+
+			pipe = pipeline.Process(pipe, contentTypeStrategy, archStrategy, osStrategy, binWithinSizeStrategy, compressedWithinSizeStrategy)
 
 			artifactSlice := make([]filter.Artifact, 0)
 			for artifact := range pipe {

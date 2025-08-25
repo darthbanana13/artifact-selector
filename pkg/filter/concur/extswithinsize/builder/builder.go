@@ -16,7 +16,8 @@ import (
 )
 
 type WithinSizeBuilder struct {
-	decorators []funcdecorator.FunctionDecorator[decorator.Constructor] // TODO: This does not make the builder resusable
+	L          log.ILogger
+	Lname      string
 	maxChann   <-chan filter.Artifact
 	exts       []string
 	maxSize    uint64
@@ -24,16 +25,16 @@ type WithinSizeBuilder struct {
 }
 
 func NewWithinSizeFilterBuilder() *WithinSizeBuilder {
-	wsb := &WithinSizeBuilder{
-		decorators: []funcdecorator.FunctionDecorator[decorator.Constructor]{
-			handleerr.HandleErrConstructorDecorator(),
-		},
-	}
-	return wsb
+	return &WithinSizeBuilder{}
 }
 
 func (wsb *WithinSizeBuilder) WithLogger(l log.ILogger) *WithinSizeBuilder {
-	wsb.decorators = append(wsb.decorators, logger.LogConstructorDecorator(l))
+	wsb.L = l
+	return wsb
+}
+
+func (wsb *WithinSizeBuilder) WithLoggerName(name string) *WithinSizeBuilder {
+	wsb.Lname = name
 	return wsb
 }
 
@@ -57,15 +58,30 @@ func (wsb *WithinSizeBuilder) WithPercentage(percentage float64) *WithinSizeBuil
 	return wsb
 }
 
+func (wsb *WithinSizeBuilder) makeDecorators() []funcdecorator.FunctionDecorator[decorator.Constructor] {
+	decorators := []funcdecorator.FunctionDecorator[decorator.Constructor]{
+		handleerr.HandleErrConstructorDecorator(),
+	}
+	if wsb.L == nil {
+		return decorators
+	}
+	return append(decorators, logger.LogConstructorDecorator(wsb.L, wsb.Lname))
+}
+
 func (wsb *WithinSizeBuilder) constructorWithDecorators() (decorator.Constructor, error) {
 	constructor := funcdecorator.DecorateFunction[decorator.Constructor](
 		extswithinsize.NewWithinSize,
-		wsb.decorators...,
+		wsb.makeDecorators()...,
 	)
 	return constructor, nil
 }
 
-func (wsb *WithinSizeBuilder) buildStartegyDeffered(constructor decorator.Constructor) (concur.FilterFunc, error) {
+func BuildStrategyDeferred(
+	constructor decorator.Constructor,
+	maxChann <-chan filter.Artifact,
+	percentage float64,
+	exts []string,
+) (concur.FilterFunc, error) {
 	var (
 		withinSizeOnce     sync.Once
 		withinSizeFilter   extswithinsize.IWithinSize
@@ -73,7 +89,7 @@ func (wsb *WithinSizeBuilder) buildStartegyDeffered(constructor decorator.Constr
 	)
 	withinSizeStrategy = func(artifact filter.Artifact) (filter.Artifact, bool) {
 		withinSizeOnce.Do(func() { // We try to construct it before this, to assure no error is returned
-			withinSizeFilter, _ = constructor(max.Find(wsb.maxChann), wsb.percentage, wsb.exts)
+			withinSizeFilter, _ = constructor(max.Find(maxChann), percentage, exts)
 		})
 		return withinSizeFilter.FilterArtifact(artifact)
 	}
@@ -88,7 +104,7 @@ func (wsb *WithinSizeBuilder) buildStrategy(constructor decorator.Constructor) (
 	if wsb.maxSize > 0 {
 		return withinSizeFilter.FilterArtifact, nil
 	}
-	return wsb.buildStartegyDeffered(constructor)
+	return BuildStrategyDeferred(constructor, wsb.maxChann, wsb.percentage, wsb.exts)
 }
 
 func (wsb *WithinSizeBuilder) Build() (concur.FilterFunc, error) {
