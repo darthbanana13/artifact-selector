@@ -20,6 +20,7 @@ import (
 	contenttypebuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata/contenttype/builder"
 	extmetadatafilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata/ext"
 	withinsizebuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/extswithinsize/builder"
+	muslbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/musl/builder"
 	osbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/builder"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/pkg/filter/tee"
@@ -69,6 +70,11 @@ func main() {
 				Aliases: []string{"o"},
 				Value:   "ubuntu",
 				Usage:   "Specify the target OS/Distro. E.g. ubuntu, linux, macos",
+			},
+			&cli.BoolFlag{
+				Name:    "musl",
+				Aliases: []string{"m"},
+				Usage:   "Exclude musl artifacts",
 			},
 			&cli.BoolFlag{
 				Name:    "verbose",
@@ -122,9 +128,8 @@ func main() {
 
 			input := convert.ToFilter(artifacts)
 
-			// TODO: Add 3 more filters:
+			// TODO: Add 2 more filters:
 			//  xz (deb), for debs compressed with zst (lsd-rs/lsd), or a generic regex that can be applied multiple times
-			//  musl/gnu (for musl vs gnu libc)
 			//  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
 			archStrategy, err := archbuilder.NewArchBuilder().
 				WithLogger(logger).
@@ -183,6 +188,15 @@ func main() {
 				return err
 			}
 
+			muslStrategy, err := muslbuilder.
+				NewMuslFilterBuilder().
+				WithLogger(logger).
+				WithFilter(cmd.Bool("musl")).
+				Build()
+			if err != nil {
+				return err
+			}
+
 			pipe := pipeline.Process(input, extStrategy)
 			pipe, extractor := tee.Tee(pipe)
 			binExtractor, compressedExtractor := tee.Tee(extractor)
@@ -211,7 +225,7 @@ func main() {
 				return err
 			}
 
-			pipe = pipeline.Process(pipe, contentTypeStrategy, archStrategy, osStrategy, binWithinSizeStrategy, compressedWithinSizeStrategy)
+			pipe = pipeline.Process(pipe, contentTypeStrategy, archStrategy, osStrategy, muslStrategy, binWithinSizeStrategy, compressedWithinSizeStrategy)
 
 			artifactSlice := make([]filter.Artifact, 0)
 			for artifact := range pipe {
