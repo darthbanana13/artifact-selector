@@ -53,17 +53,17 @@ func NewLogDecorator(fetcher fetcher.IFetcherTemplate, logger logging.ILogger) (
 // 	return info, artifacts, err
 // }
 
-const makeURLErr = "Could not make URL for request"
+const MakeURLErr = "Could not make URL for request"
 
 func (l *Log) MakeURL(userRepo string, version string) (string, error) {
 	url, err := l.IFetcherTemplate.MakeURL(userRepo, version)
 	if err != nil {
 		invalidFormat := &handleerr.InvalidGithubRepoFormat{}
 		if errors.As(err, &invalidFormat) {
-			l.L.Info(makeURLErr, "Error", invalidFormat.Error(), "Repo format", invalidFormat.UserRepo)
+			l.L.Info(MakeURLErr, "Error", invalidFormat.Error(), "Repo format", invalidFormat.UserRepo)
 			return url, invalidFormat
 		}
-		l.L.Info(makeURLErr, "Error", err.Error())
+		l.L.Info(MakeURLErr, "Error", err.Error())
 	}
 	l.L.Debug("Preparing to make request", "URL", url)
 	return url, err
@@ -105,17 +105,17 @@ func (l *Log) PrepareRequest(url string) *http.Request {
 	return req
 }
 
-const doErr = "Error when fetching the Github artifacts"
+const DoErr = "Error when fetching the Github artifacts"
 
 func (l *Log) Do(req *http.Request) (*http.Response, error) {
 	resp, err := l.IFetcherTemplate.Do(req)
 	if err != nil {
 		httpRespErr := &handleerr.GithubHTTPResp{}
 		if errors.As(err, &httpRespErr) {
-			l.L.Info(doErr, "Error", httpRespErr.Error, "Expected", httpRespErr.Expected, "Received", httpRespErr.Received)
+			l.L.Info(DoErr, "Error", httpRespErr.Error, "Expected", httpRespErr.Expected, "Received", httpRespErr.Received)
 			return resp, httpRespErr
 		}
-		l.L.Info(doErr, "Error", err.Error())
+		l.L.Info(DoErr, "Error", err.Error())
 	}
 	return resp, err
 }

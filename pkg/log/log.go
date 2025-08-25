@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	PROD        = "prod"
-	VERBOSE     = "verbose"
-	VERYVERBOSE = "veryverbose"
+	Prod        = "prod"
+	Verbose     = "verbose"
+	VeryVerbose = "veryverbose"
 )
 
 func InitLog(appEnv string) ILogger {
 	appEnv = strings.ToLower(appEnv)
-	if appEnv == PROD {
+	if appEnv == Prod {
 		return NewZapLogger(produceProdConfig())
 	}
 	return NewZapLogger(produceDevConfig(appEnv))
@@ -29,7 +29,7 @@ func produceProdConfig() zap.Config {
 
 func produceDevConfig(appEnv string) zap.Config {
 	config := zap.NewDevelopmentConfig()
-	if appEnv == VERBOSE {
+	if appEnv == Verbose {
 		config.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
 	}
 	return config

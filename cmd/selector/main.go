@@ -95,11 +95,11 @@ func main() {
 			var logLevel string
 			switch verbosityCount {
 			case 0:
-				logLevel = log.PROD
+				logLevel = log.Prod
 			case 1:
-				logLevel = log.VERBOSE
+				logLevel = log.Verbose
 			default:
-				logLevel = log.VERYVERBOSE
+				logLevel = log.VeryVerbose
 			}
 			logger = log.InitLog(logLevel)
 
@@ -158,7 +158,7 @@ func main() {
 
 			//TODO: Test more if including appimage is a good idea
 			binaryStrategy, err := extBuilder.
-				WithExts([]string{extfilter.LINUXBINARY, "appimage"}).
+				WithExts([]string{extfilter.LinuxBinary, "appimage"}).
 				WithLoggerName("Binary Extractor").
 				WithConstructor(extmetadatafilter.NewExt).
 				Build()
@@ -194,7 +194,7 @@ func main() {
 				WithPercentage(20)
 
 			binWithinSizeStrategy, err := withinSizeBuilder.
-				WithExts([]string{extfilter.LINUXBINARY}).
+				WithExts([]string{extfilter.LinuxBinary}).
 				WithLoggerName("Binary Filter").
 				WithChannelMax(binExtractor).
 				Build()

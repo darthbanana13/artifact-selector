@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	NONE = "none"
+	None = "none"
 )
 
 type ReleasesInfo struct {
@@ -35,7 +35,7 @@ func AddMetadata(metadata map[string]any, key string, val any) map[string]any {
 func GetStringMetadata(metadata map[string]any, key string) string {
 	val, ok := metadata[key]
 	if !ok {
-		return NONE
+		return None
 	}
 	return val.(string)
 }

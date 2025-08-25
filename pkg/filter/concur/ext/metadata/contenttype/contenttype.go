@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	MISSING   = "missing"
-	UNKNOWN   = "unknown"
-	MISSMATCH = "missmatch"
-	MATCH     = "match"
+	Missing   = "missing"
+	Unknown   = "unknown"
+	Missmatch = "missmatch"
+	Match     = "match"
 )
 
 var ExtensionContentType = map[string][]string{
@@ -38,21 +38,21 @@ var ExtensionContentType = map[string][]string{
 	"apk":            {"application/vnd.android.package-archive"},
 	"dmg":            {"application/x-apple-diskimage"},
 	"pkg":            {"application/octet-stream"},
-	ext.LINUXBINARY:  {"application/octet-stream"},
+	ext.LinuxBinary:  {"application/octet-stream"},
 }
 
 func FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if artifact.ContentType == "" {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", MISSING)
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", Missing)
 		return artifact, true
 	}
 	vals, ok := ExtensionContentType[artifact.Metadata["ext"].(string)]
 	if !ok {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", UNKNOWN)
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", Unknown)
 	} else if !slices.Contains(vals, artifact.ContentType) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", MISSMATCH)
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", Missmatch)
 	} else {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", MATCH)
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", Match)
 	}
 	return artifact, true
 }

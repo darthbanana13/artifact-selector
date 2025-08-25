@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	DISTRO  = "distro"
-	BASEOS  = "os"
-	MISSING = "missing"
+	Distro  = "distro"
+	BaseOS  = "os"
+	Missing = "missing"
 )
 
 var OSMap = map[string][]string{
@@ -57,13 +57,13 @@ func NewOS(targetOS string) (IOS, error) {
 
 func (o *OS) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if IsInAliases(o.targetDistroAliases, artifact.FileName) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", DISTRO)
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", Distro)
 		return artifact, true
 	} else if IsInAliases(o.targetOSAliases, artifact.FileName) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", BASEOS)
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", BaseOS)
 		return artifact, true
 	} else if DoesntMatchAliases(o.excludedAliases, artifact.FileName) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", MISSING)
+		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", Missing)
 		return artifact, true
 	}
 	return artifact, false
