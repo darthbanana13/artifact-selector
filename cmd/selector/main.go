@@ -7,23 +7,24 @@ import (
 	"os"
 	"strings"
 
-	"github.com/darthbanana13/artifact-selector/pkg/fetcher"
-	fetcherconcur "github.com/darthbanana13/artifact-selector/pkg/fetcher/concur"
-	"github.com/darthbanana13/artifact-selector/pkg/fetcher/github/builder"
-	"github.com/darthbanana13/artifact-selector/pkg/log"
+	"github.com/darthbanana13/artifact-selector/internal/fetcher"
+	fetcherconcur "github.com/darthbanana13/artifact-selector/internal/fetcher/concur"
+	"github.com/darthbanana13/artifact-selector/internal/fetcher/github/builder"
+	"github.com/darthbanana13/artifact-selector/internal/log"
 
-	"github.com/darthbanana13/artifact-selector/pkg/filter"
-	archbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/arch/builder"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/concur/convert"
-	extfilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext"
-	extbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/builder"
-	contenttypebuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata/contenttype/builder"
-	extmetadatafilter "github.com/darthbanana13/artifact-selector/pkg/filter/concur/ext/metadata/ext"
-	withinsizebuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/extswithinsize/builder"
-	muslbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/musl/builder"
-	osbuilder "github.com/darthbanana13/artifact-selector/pkg/filter/concur/os/builder"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/pipeline"
-	"github.com/darthbanana13/artifact-selector/pkg/filter/tee"
+	regexcli "github.com/darthbanana13/artifact-selector/internal/cli/regex"
+	"github.com/darthbanana13/artifact-selector/internal/filter"
+	archbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/arch/builder"
+	"github.com/darthbanana13/artifact-selector/internal/filter/concur/convert"
+	extfilter "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext"
+	extbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext/builder"
+	contenttypebuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext/metadata/contenttype/builder"
+	extmetadatafilter "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext/metadata/ext"
+	withinsizebuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/extswithinsize/builder"
+	muslbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/musl/builder"
+	osbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/os/builder"
+	"github.com/darthbanana13/artifact-selector/internal/filter/pipeline"
+	"github.com/darthbanana13/artifact-selector/internal/filter/tee"
 
 	"github.com/urfave/cli-altsrc/v3"
 	jsonconfig "github.com/urfave/cli-altsrc/v3/json"
@@ -84,6 +85,32 @@ func main() {
 					Count: &verbosityCount,
 				},
 			},
+			&cli.StringSliceFlag{
+				Name:    "regex",
+				Aliases: []string{"X"},
+				Usage:   "Additional regex(es) filter to apply",
+			},
+			&cli.StringSliceFlag{
+				Name:    "regex-meta",
+				Aliases: []string{"M"},
+				Usage:   "Give a name to the regex match metadata key",
+			},
+			&cli.StringSliceFlag{
+				Name:    "regex-lower",
+				Aliases: []string{"L"},
+				Usage: `Should the regex(es) apply to a string that has been lowercased, possible values "yes", "no", "y", "n".
+Default: "no"`,
+			},
+			&cli.StringSliceFlag{
+				Name:    "regex-filter",
+				Aliases: []string{"F"},
+				Usage: `Should the regex(es) exclude the matched values.
+Possible values:
+	"yes", "y" - filters the values that don't match the regex
+	"no", "n" - only adds metadata if there is a match
+	"exclude", "e" - excludes the values that match the regex
+Default: "no"`,
+			},
 			//TODO: The token should be optional
 			&cli.StringFlag{
 				Name:    "token",
@@ -128,26 +155,8 @@ func main() {
 
 			input := convert.ToFilter(artifacts)
 
-			// TODO: Add 2 more filters:
-			//  xz (deb), for debs compressed with zst (lsd-rs/lsd), or a generic regex that can be applied multiple times
-			//  common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
-			archStrategy, err := archbuilder.NewArchBuilder().
-				WithLogger(logger).
-				WithArch(cmd.String("arch")).
-				Build()
-			if err != nil {
-				return err
-			}
-
-			osStrategy, err := osbuilder.
-				NewOSBuilder().
-				WithLogger(logger).
-				WithOS(cmd.String("os")).
-				Build()
-			if err != nil {
-				return err
-			}
-
+			// TODO: Maybe add 1 more filter: common names (like checksum, checksums, hashes, man, only) (mikefarah/yq)
+			//	Could be useful for non-github sources where maybe we don't know the size and/or content type
 			extBuilder := extbuilder.
 				NewExtFilterBuilder().
 				WithLogger(logger)
@@ -170,6 +179,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+
 			compressedExtensions := []string{"deb", "tar.gz", "zip", "tar.xz", "tar.bz2", "tbz", "tar.zst", "rpm"}
 			compressedStrategy, err := extBuilder.
 				WithExts(compressedExtensions).
@@ -180,6 +190,31 @@ func main() {
 				return err
 			}
 
+			pipe := pipeline.Process(input, extStrategy)
+			pipe, extractor := tee.Tee(pipe)
+			binExtractor, compressedExtractor := tee.Tee(extractor)
+			binExtractor = pipeline.Process(binExtractor, binaryStrategy)
+			compressedExtractor = pipeline.Process(compressedExtractor, compressedStrategy)
+
+			archStrategy, err := archbuilder.NewArchBuilder().
+				WithLogger(logger).
+				WithArch(cmd.String("arch")).
+				Build()
+			if err != nil {
+				return err
+			}
+			pipe = pipeline.Process(pipe, archStrategy)
+
+			osStrategy, err := osbuilder.
+				NewOSBuilder().
+				WithLogger(logger).
+				WithOS(cmd.String("os")).
+				Build()
+			if err != nil {
+				return err
+			}
+			pipe = pipeline.Process(pipe, osStrategy)
+
 			contentTypeStrategy, err := contenttypebuilder.
 				NewContentTypeFilterBuilder().
 				WithLogger(logger).
@@ -187,6 +222,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+			pipe = pipeline.Process(pipe, contentTypeStrategy)
 
 			muslStrategy, err := muslbuilder.
 				NewMuslFilterBuilder().
@@ -196,12 +232,23 @@ func main() {
 			if err != nil {
 				return err
 			}
+			pipe = pipeline.Process(pipe, muslStrategy)
 
-			pipe := pipeline.Process(input, extStrategy)
-			pipe, extractor := tee.Tee(pipe)
-			binExtractor, compressedExtractor := tee.Tee(extractor)
-			binExtractor = pipeline.Process(binExtractor, binaryStrategy)
-			compressedExtractor = pipeline.Process(compressedExtractor, compressedStrategy)
+			regexFilters := make([]filter.IFilter, len(cmd.StringSlice("regex")))
+			regexStrategies, err := regexcli.ProcessRegexParams(
+				cmd.StringSlice("regex"),
+				cmd.StringSlice("regex-lower"),
+				cmd.StringSlice("regex-filter"),
+				cmd.StringSlice("regex-meta"),
+				logger,
+			)
+			if err != nil {
+				return err
+			}
+			for i, regexStrategy := range regexStrategies {
+				regexFilters[i] = regexStrategy
+			}
+			pipe = pipeline.Process(pipe, regexFilters...)
 
 			withinSizeBuilder := withinsizebuilder.NewWithinSizeFilterBuilder().
 				WithLogger(logger).
@@ -215,6 +262,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+			pipe = pipeline.Process(pipe, binWithinSizeStrategy)
 
 			compressedWithinSizeStrategy, err := withinSizeBuilder.
 				WithExts(compressedExtensions).
@@ -224,8 +272,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-
-			pipe = pipeline.Process(pipe, contentTypeStrategy, archStrategy, osStrategy, muslStrategy, binWithinSizeStrategy, compressedWithinSizeStrategy)
+			pipe = pipeline.Process(pipe, compressedWithinSizeStrategy)
 
 			artifactSlice := make([]filter.Artifact, 0)
 			for artifact := range pipe {

@@ -5,6 +5,6 @@ if [[ ! -x "$(which go)" ]]; then
     exit 1
 fi
 
-go test -v  github.com/darthbanana13/artifact-selector/pkg/log
-go test -v  github.com/darthbanana13/artifact-selector/pkg/github
-go test -v  github.com/darthbanana13/artifact-selector/pkg/glogdecorate
+go test -v  github.com/darthbanana13/artifact-selector/internal/log
+go test -v  github.com/darthbanana13/artifact-selector/internal/github
+go test -v  github.com/darthbanana13/artifact-selector/internal/glogdecorate

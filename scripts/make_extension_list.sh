@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 INPUT_FILE="assets/extension_list.txt"
-OUTPUT_FILE="pkg/extensionlist/map.go"
+OUTPUT_FILE="internal/extensionlist/map.go"
 
 if [[ ! -f "$INPUT_FILE" ]]; then
     echo "Error: Extension list file '${INPUT_FILE}' not found."
