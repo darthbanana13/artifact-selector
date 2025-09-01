@@ -26,7 +26,7 @@ func NewMusl(filter bool) (IMusl, error) {
 
 func (m *Musl) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	match := reg.MatchString(strings.ToLower(artifact.FileName))
-	artifact.Metadata = filter.AddMetadata(artifact.Metadata, "musl", match)
+	artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "musl", match)
 	if m.Filter {
 		return artifact, !match
 	}

@@ -42,10 +42,10 @@ func NewArch(targetArch string) (IArch, error) {
 
 func (a *Arch) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if MatchesArch(artifact.FileName, a.TargetArch) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "arch", Exact)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "arch", Exact)
 		return artifact, true
 	} else if a.TargetArch == "x86_64" && !MatchesOtherArch(artifact.FileName, a.TargetArch) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "arch", Missing)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "arch", Missing)
 		return artifact, true
 	}
 	return artifact, false

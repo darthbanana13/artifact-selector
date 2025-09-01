@@ -43,16 +43,16 @@ var ExtensionContentType = map[string][]string{
 
 func FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if artifact.ContentType == "" {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", Missing)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "contentType", Missing)
 		return artifact, true
 	}
 	vals, ok := ExtensionContentType[artifact.Metadata["ext"].(string)]
 	if !ok {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", Unknown)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "contentType", Unknown)
 	} else if !slices.Contains(vals, artifact.ContentType) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", Missmatch)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "contentType", Missmatch)
 	} else {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "contentType", Match)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "contentType", Match)
 	}
 	return artifact, true
 }

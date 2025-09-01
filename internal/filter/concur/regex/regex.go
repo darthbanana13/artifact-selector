@@ -33,7 +33,7 @@ func (r *Regex) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool)
 	filename := r.applyToLower(artifact.FileName)
 	match := r.R.MatchString(filename)
 	if r.MetaKey != "" {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, r.MetaKey, match)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, r.MetaKey, match)
 	}
 	match = r.applyExclude(match)
 	return r.applyFilter(artifact, match)

@@ -57,13 +57,13 @@ func NewOS(targetOS string) (IOS, error) {
 
 func (o *OS) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if IsInAliases(o.targetDistroAliases, artifact.FileName) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", Distro)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", Distro)
 		return artifact, true
 	} else if IsInAliases(o.targetOSAliases, artifact.FileName) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", BaseOS)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", BaseOS)
 		return artifact, true
 	} else if DoesntMatchAliases(o.excludedAliases, artifact.FileName) {
-		artifact.Metadata = filter.AddMetadata(artifact.Metadata, "os", Missing)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", Missing)
 		return artifact, true
 	}
 	return artifact, false
