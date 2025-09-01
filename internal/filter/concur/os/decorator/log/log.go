@@ -47,7 +47,7 @@ func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifac
 	ld.L.Debug("OS filtered",
 		"Artifact", filteredArtifact,
 		"Keep", keep,
-		"Match Type", filter.GetStringMetadata(filteredArtifact.Metadata, "os"),
+		"Match Alias", filter.GetStringMetadata(filteredArtifact.Metadata, "os"),
 	)
 	return filteredArtifact, keep
 }

@@ -1,6 +1,7 @@
 package os
 
 import (
+	"regexp"
 	"slices"
 	"strings"
 
@@ -9,15 +10,13 @@ import (
 )
 
 const (
-	Distro  = "distro"
-	BaseOS  = "os"
 	Missing = "missing"
 )
 
 var OSMap = map[string][]string{
 	"linux":   {"linux64", "linux"},
 	"android": {"android"},
-	"windows": {"windows", "win64", "win32", "win11", "win10", "win"},
+	"windows": {"win11", "win10", "win64", "windows", "win32", "win"},
 	"macos":   {"macos", "mac", "darwin", "osx", "apple"},
 	"freebsd": {"freebsd", "bsd"},
 	"openbsd": {"openbsd", "bsd"},
@@ -33,15 +32,17 @@ var DistroMap = map[string][]string{
 }
 
 type OS struct {
-	targetOS            string
-	targetDistroAliases []string
-	targetOSAliases     []string
-	excludedAliases     []string
+	targetOS        string
+	targetAliases   []string
+	targetRegexes   []*regexp.Regexp
+	excludedAliases []string
+	excludedRegexes []*regexp.Regexp
 }
 
 func (o *OS) SetTargetOS(targetOS string) error {
 	o.targetOS = targetOS
-	o.targetDistroAliases, o.targetOSAliases, o.excludedAliases = PartitionOSAliases(o.targetOS)
+	o.targetAliases, o.excludedAliases = PartitionOSAliases(o.targetOS)
+	o.targetRegexes, o.excludedRegexes = MakeOSRegexes(o.targetAliases), MakeOSRegexes(o.excludedAliases)
 	return nil
 }
 
@@ -56,48 +57,48 @@ func NewOS(targetOS string) (IOS, error) {
 }
 
 func (o *OS) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
-	if IsInAliases(o.targetDistroAliases, artifact.FileName) {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", Distro)
+	i := IndexInAliases(o.targetRegexes, artifact.FileName)
+	if i >= 0 {
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", o.targetAliases[i], "os-index", i)
 		return artifact, true
-	} else if IsInAliases(o.targetOSAliases, artifact.FileName) {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", BaseOS)
-		return artifact, true
-	} else if DoesntMatchAliases(o.excludedAliases, artifact.FileName) {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", Missing)
+	} else if DoesntMatchAliases(o.excludedRegexes, artifact.FileName) {
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", Missing, "os-index", i)
 		return artifact, true
 	}
 	return artifact, false
 }
 
-func PartitionOSAliases(targetOS string) (targetDistroAliases, targetOSAliases, excludedAliases []string) {
+func PartitionOSAliases(targetOS string) (targetAliases, excludedAliases []string) {
 	if IsOSNameADistro(targetOS) {
-		targetDistroAliases = append(targetDistroAliases, DistroMap[targetOS]...)
+		targetAliases = append(targetAliases, DistroMap[targetOS]...)
 		excludedAliases = append(excludedAliases, GetExcludedDistros(targetOS)...)
 		targetOS = "linux"
 	}
-	targetOSAliases = OSMap[targetOS]
+	targetAliases = append(targetAliases, OSMap[targetOS]...)
 	excludedAliases = append(excludedAliases, GetExcludedOSes(targetOS)...)
-	return targetDistroAliases, targetOSAliases, excludedAliases
+	return targetAliases, excludedAliases
 }
 
-func MatchesAlias(alias, s string) bool {
-	r := separator.MakeAliasRegex(alias)
-	return r.MatchString(strings.ToLower(s))
+func MakeOSRegexes(aliases []string) []*regexp.Regexp {
+	out := make([]*regexp.Regexp, len(aliases))
+	for aliasIndex, alias := range aliases {
+		out[aliasIndex] = separator.MakeAliasRegex(alias)
+	}
+	return out
 }
 
-func IsInAliases(aliases []string, s string) bool {
-	for _, alias := range aliases {
-		if MatchesAlias(alias, s) {
-			return true
+func IndexInAliases(regexes []*regexp.Regexp, s string) int {
+	for index, regex := range regexes {
+		if regex.MatchString(strings.ToLower(s)) {
+			return index
 		}
 	}
-	return false
+	return -1
 }
 
-func DoesntMatchAliases(aliases []string, s string) bool {
-	for _, alias := range aliases {
-		r := separator.MakeAliasRegex(alias)
-		if r.MatchString(strings.ToLower(s)) {
+func DoesntMatchAliases(regexes []*regexp.Regexp, s string) bool {
+	for _, regex := range regexes {
+		if regex.MatchString(strings.ToLower(s)) {
 			return false
 		}
 	}
