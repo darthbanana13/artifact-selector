@@ -28,6 +28,7 @@ type (
 		ContentType  string `json:"content_type"`
 		Size         uint64 `json:"size"`
 		DownloadLink string `json:"browser_download_url"`
+		Checksum     string `json:"digest"`
 	}
 
 	Github struct {
@@ -91,6 +92,7 @@ func ConvertArtifacts(artifacts []Artifact) []fetcher.Artifact {
 			ContentType:  artifact.ContentType,
 			Size:         artifact.Size,
 			DownloadLink: artifact.DownloadLink,
+			Checksum:     artifact.Checksum, //https://github.blog/changelog/2025-03-18-github-actions-now-supports-a-digest-for-validating-your-artifacts-at-runtime/
 		})
 	}
 	return result

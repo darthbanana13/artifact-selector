@@ -28,6 +28,7 @@ type (
 		ContentType  string
 		Size         uint64
 		DownloadLink string
+		Checksum     string
 	}
 
 	Fetcher struct {
