@@ -8970,6 +8970,7 @@ var exts = map[string]bool{
 	"ptz":                       true,
 	"pu":                        true,
 	"pub":                       true,
+	"pubkey":                    true,
 	"pubkr":                     true,
 	"publication":               true,
 	"publishproj":               true,

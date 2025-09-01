@@ -8966,6 +8966,7 @@
 .ptz
 .pu
 .pub
+.pubkey
 .pubkr
 .publication
 .publishproj
