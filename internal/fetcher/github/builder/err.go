@@ -1,3 +1,3 @@
 package builder
 
-type NotImplemendted error
+type NotImplemented error

@@ -26,7 +26,7 @@ import (
 	"github.com/darthbanana13/artifact-selector/internal/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/internal/filter/tee"
 
-	"github.com/urfave/cli-altsrc/v3"
+	altsrc "github.com/urfave/cli-altsrc/v3"
 	jsonconfig "github.com/urfave/cli-altsrc/v3/json"
 	"github.com/urfave/cli/v3"
 )
@@ -123,7 +123,7 @@ Default: "no"`,
 				),
 			},
 		},
-		//TODO: Clean up this funcion
+		//TODO: Clean up this function
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			var logLevel string
 			switch verbosityCount {
@@ -136,7 +136,7 @@ Default: "no"`,
 			}
 			logger = log.InitLog(logLevel)
 
-			fetcherStrategy, err := builder.NewGihubFetcher().
+			fetcherStrategy, err := builder.NewGithubFetcher().
 				WithLogger(logger).
 				WithRetry(3).
 				WithLogin(strings.TrimSpace(cmd.String("token"))).
@@ -170,16 +170,6 @@ Default: "no"`,
 				return err
 			}
 
-			//TODO: Test more if including appimage is a good idea
-			binaryStrategy, err := extBuilder.
-				WithExts([]string{extfilter.LinuxBinary, "appimage"}).
-				WithLoggerName("Binary Extractor").
-				WithConstructor(extmetadatafilter.NewExt).
-				Build()
-			if err != nil {
-				return err
-			}
-
 			compressedExtensions := []string{"deb", "tar.gz", "zip", "tar.xz", "tar.bz2", "tbz", "tar.zst", "rpm"}
 			compressedStrategy, err := extBuilder.
 				WithExts(compressedExtensions).
@@ -190,11 +180,27 @@ Default: "no"`,
 				return err
 			}
 
+			//TODO: Test more if including appimage is a good idea
+			binaryExtensions := []string{extfilter.LinuxBinary, "appimage"}
+			//		In case we're not sure if the filtered artifacts are actually a binary, and there is no actual binary in the
+			//	artifacts list, we can add compressed extensions for calculating the max. This way, if there is something silly
+			//	like a txt file renamed to a random extension, because it's a lot smaller than the artifacts we know pretty sure
+			//	are compressed, then it's most likely not the binary we're looking for
+			binaryExtensions = append(binaryExtensions, compressedExtensions...)
+			binaryStrategy, err := extBuilder.
+				WithExts([]string{extfilter.LinuxBinary, "appimage"}).
+				WithLoggerName("Binary Extractor").
+				WithConstructor(extmetadatafilter.NewExt).
+				Build()
+			if err != nil {
+				return err
+			}
+
 			pipe := pipeline.Process(input, extStrategy)
 			pipe, extractor := tee.Tee(pipe)
 			binExtractor, compressedExtractor := tee.Tee(extractor)
-			binExtractor = pipeline.Process(binExtractor, binaryStrategy)
 			compressedExtractor = pipeline.Process(compressedExtractor, compressedStrategy)
+			binExtractor = pipeline.Process(binExtractor, binaryStrategy)
 
 			archStrategy, err := archbuilder.NewArchBuilder().
 				WithLogger(logger).
@@ -254,16 +260,6 @@ Default: "no"`,
 				WithLogger(logger).
 				WithPercentage(20)
 
-			binWithinSizeStrategy, err := withinSizeBuilder.
-				WithExts([]string{extfilter.LinuxBinary}).
-				WithLoggerName("Binary Filter").
-				WithChannelMax(binExtractor).
-				Build()
-			if err != nil {
-				return err
-			}
-			pipe = pipeline.Process(pipe, binWithinSizeStrategy)
-
 			compressedWithinSizeStrategy, err := withinSizeBuilder.
 				WithExts(compressedExtensions).
 				WithLoggerName("Compressed Filter").
@@ -273,6 +269,16 @@ Default: "no"`,
 				return err
 			}
 			pipe = pipeline.Process(pipe, compressedWithinSizeStrategy)
+
+			binWithinSizeStrategy, err := withinSizeBuilder.
+				WithExts([]string{extfilter.LinuxBinary}).
+				WithLoggerName("Binary Filter").
+				WithChannelMax(binExtractor).
+				Build()
+			if err != nil {
+				return err
+			}
+			pipe = pipeline.Process(pipe, binWithinSizeStrategy)
 
 			artifactSlice := make([]filter.Artifact, 0)
 			for artifact := range pipe {
@@ -284,12 +290,12 @@ Default: "no"`,
 				Draft:      info.Draft,
 				Artifacts:  artifactSlice,
 			}
-			minfo, err := json.Marshal(releases)
+			mInfo, err := json.Marshal(releases)
 
 			if err != nil {
 				return err
 			}
-			fmt.Println(string(minfo))
+			fmt.Println(string(mInfo))
 
 			return err
 		},

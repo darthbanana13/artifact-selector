@@ -21,7 +21,7 @@ type GithubFetcher struct {
 	MaxRetries int
 }
 
-func NewGihubFetcher() *GithubFetcher {
+func NewGithubFetcher() *GithubFetcher {
 	return &GithubFetcher{
 		Decorators: []funcdecorator.FunctionDecorator[decorator.Constructor]{
 			handleerr.HandleErrConstructorDecorator(),
@@ -60,7 +60,7 @@ func (gf *GithubFetcher) Build() (fetcher.IFetcherTemplate, error) {
 		return constructor(http.DefaultClient)
 	}
 	if gf.Logger == nil {
-		return nil, NotImplemendted(errors.New("Fetcher retry without logger not implemented"))
+		return nil, NotImplemented(errors.New("Fetcher retry without logger not implemented"))
 	}
 
 	return constructor(retryclient.NewRetryClient(gf.MaxRetries, gf.Logger))
