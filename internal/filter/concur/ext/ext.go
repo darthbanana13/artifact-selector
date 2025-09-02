@@ -26,7 +26,7 @@ import (
 // }
 
 const (
-	LinuxBinary = ""
+	LinuxBinary = "LINUXBINARY"
 )
 
 type Ext struct {
