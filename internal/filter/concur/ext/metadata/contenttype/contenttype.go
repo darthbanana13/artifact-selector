@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	Missing   = "missing"
-	Unknown   = "unknown"
-	Missmatch = "missmatch"
-	Match     = "match"
+	Missing  = "missing"
+	Unknown  = "unknown"
+	Mismatch = "mismatch"
+	Match    = "match"
 )
 
 var ExtensionContentType = map[string][]string{
@@ -50,7 +50,7 @@ func FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if !ok {
 		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "content-type", Unknown)
 	} else if !slices.Contains(vals, artifact.ContentType) {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "content-type", Missmatch)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "content-type", Mismatch)
 	} else {
 		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "content-type", Match)
 	}

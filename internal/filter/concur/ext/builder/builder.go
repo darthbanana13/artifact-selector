@@ -15,7 +15,7 @@ import (
 type ExtBuilder struct {
 	Exts        []string
 	L           log.ILogger
-	Lname       string
+	LName       string
 	Constructor decorator.Constructor //strategy
 }
 
@@ -29,7 +29,7 @@ func (eb *ExtBuilder) WithLogger(l log.ILogger) *ExtBuilder {
 }
 
 func (eb *ExtBuilder) WithLoggerName(name string) *ExtBuilder {
-	eb.Lname = name
+	eb.LName = name
 	return eb
 }
 
@@ -50,7 +50,7 @@ func (eb *ExtBuilder) makeDecorators() []funcdecorator.FunctionDecorator[decorat
 	if eb.L == nil {
 		return decorators
 	}
-	return append(decorators, logger.LogConstructorDecorator(eb.L, eb.Lname))
+	return append(decorators, logger.LogConstructorDecorator(eb.L, eb.LName))
 }
 
 func (eb *ExtBuilder) Build() (concur.FilterFunc, error) {

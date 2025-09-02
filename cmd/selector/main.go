@@ -182,13 +182,13 @@ Default: "no"`,
 
 			//TODO: Test more if including appimage is a good idea
 			binaryExtensions := []string{extfilter.LinuxBinary, "appimage"}
-			//		In case we're not sure if the filtered artifacts are actually a binary, and there is no actual binary in the
+			//NOTE: In case we're not sure if the filtered artifacts are actually a binary, and there is no actual binary in the
 			//	artifacts list, we can add compressed extensions for calculating the max. This way, if there is something silly
 			//	like a txt file renamed to a random extension, because it's a lot smaller than the artifacts we know pretty sure
 			//	are compressed, then it's most likely not the binary we're looking for
 			binaryExtensions = append(binaryExtensions, compressedExtensions...)
 			binaryStrategy, err := extBuilder.
-				WithExts([]string{extfilter.LinuxBinary, "appimage"}).
+				WithExts(binaryExtensions).
 				WithLoggerName("Binary Extractor").
 				WithConstructor(extmetadatafilter.NewExt).
 				Build()

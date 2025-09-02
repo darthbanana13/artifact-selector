@@ -12,7 +12,7 @@ import (
 
 type RegexBuilder struct {
 	L       log.ILogger
-	Lname   string
+	LName   string
 	Expr    string
 	MetaKey string
 	ToLower bool
@@ -30,7 +30,7 @@ func (rb *RegexBuilder) WithLogger(l log.ILogger) *RegexBuilder {
 }
 
 func (rb *RegexBuilder) WithLoggerName(name string) *RegexBuilder {
-	rb.Lname = name
+	rb.LName = name
 	return rb
 }
 
@@ -64,7 +64,7 @@ func (rb *RegexBuilder) makeDecorators() []funcdecorator.FunctionDecorator[decor
 		handleerr.HandleErrConstructorDecorator(),
 	}
 	if rb.L != nil {
-		decorators = append(decorators, logger.LogConstructorDecorator(rb.L, rb.Lname))
+		decorators = append(decorators, logger.LogConstructorDecorator(rb.L, rb.LName))
 	}
 	return decorators
 }

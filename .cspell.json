@@ -1,0 +1,48 @@
+{
+	"$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+	"caseSensitive": false,
+	"dictionaries": [
+		"go",
+		"filetypes",
+		"bash",
+		"en_us",
+		"en-gb",
+		"companies",
+		"softwareTerms",
+		"misc"
+	],
+	"version": "0.2",
+	"language": "en",
+	"unknownWords": "report-simple",
+	"ignorePaths": [
+		"internal/extensionlist/map.go"
+	],
+	"overrides": [
+    {
+      "filename": "internal/filter/concur/ext/metadata/contenttype/contenttype.go",
+      "ignoreRegExpList": [
+        "/var ExtensionContentType = map\\[string\\]\\[\\]string\\{[\\s\\S]*?\\}$/gm"
+      ]
+    },
+		{
+      "filename": "internal/filter/concur/arch/arch.go",
+      "ignoreRegExpList": [
+        "/var ArchMap = map\\[string\\]\\[\\]string\\{[\\s\\S]*?\\}$/gm"
+      ]
+		}
+  ],
+	"ignoreWords": [
+		"Sourcer",
+		"Debugw",
+		"Infow",
+		"Panicw",
+		"Doesnt",
+		"IURL",
+		"IHTTP"
+	],
+	"words": [
+	],
+	"flagWords": [],
+	"allowCompoundWords": true,
+	"enabledFiletypes": ["go", "sh"]
+}

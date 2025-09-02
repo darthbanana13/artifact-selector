@@ -13,7 +13,7 @@ import (
 type LogDecorator struct {
 	regex.IRegex
 	L     logging.ILogger
-	Lname string
+	LName string
 }
 
 func LogConstructorDecorator(
@@ -50,7 +50,7 @@ func NewLogDecorator(rf regex.IRegex, logger logging.ILogger, name string) (rege
 	return &LogDecorator{
 		IRegex: rf,
 		L:      logger,
-		Lname:  name,
+		LName:  name,
 	}, nil
 }
 
@@ -59,13 +59,13 @@ func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifac
 	key := ld.IRegex.MetadataKey()
 	if key == "" {
 		ld.L.Debug("Regex filtered",
-			"Decorator", ld.Lname,
+			"Decorator", ld.LName,
 			"Artifact", filteredArtifact,
 			"Keep", keep,
 		)
 	} else {
 		ld.L.Debug("Regex filtered",
-			"Decorator", ld.Lname,
+			"Decorator", ld.LName,
 			"Artifact", filteredArtifact,
 			"Keep", keep,
 			"Match Type", filteredArtifact.Metadata[ld.IRegex.MetadataKey()],
