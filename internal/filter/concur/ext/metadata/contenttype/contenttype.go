@@ -42,7 +42,7 @@ var ExtensionContentType = map[string][]string{
 }
 
 func FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
-	if artifact.ContentType == "" {
+	if slices.Contains([]string{"", "raw"}, artifact.ContentType) {
 		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "content-type", Missing)
 		return artifact, true
 	}

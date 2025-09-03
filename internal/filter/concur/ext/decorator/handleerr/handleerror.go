@@ -2,6 +2,7 @@ package handleerr
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/darthbanana13/artifact-selector/internal/filter"
 	"github.com/darthbanana13/artifact-selector/internal/filter/concur/ext"
@@ -51,6 +52,9 @@ func (hed *HandleErrDecorator) SetTargetExts(targetExts []string) error {
 func CheckValidExts(exts []string) error {
 	if len(exts) == 0 {
 		return EmptyExtsErr(errors.New("At least one extension is required"))
+	}
+	if slices.Contains(exts, "") {
+		return EmptyExtsErr(errors.New("Extension cannot be an empty string"))
 	}
 	return nil
 }
