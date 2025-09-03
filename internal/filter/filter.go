@@ -13,8 +13,6 @@ const (
 
 type ReleasesInfo struct {
 	Version    string
-	PreRelease bool
-	Draft      bool
 	Artifacts  []Artifact
 }
 
