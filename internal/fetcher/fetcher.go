@@ -17,9 +17,7 @@ type (
 	JsonParser func(io.Reader) (ReleaseInfo, []Artifact, error)
 
 	ReleaseInfo struct {
-		Version    string
-		PreRelease bool
-		Draft      bool
+		Version string
 	}
 
 	Artifact struct {

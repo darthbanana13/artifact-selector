@@ -16,10 +16,8 @@ const (
 
 type (
 	ReleaseInfo struct {
-		Version    string     `json:"tag_name"`
-		PreRelease bool       `json:"prerelease"`
-		Draft      bool       `json:"draft"`
-		Artifacts  []Artifact `json:"assets"`
+		Version   string     `json:"tag_name"`
+		Artifacts []Artifact `json:"assets"`
 	}
 
 	Artifact struct {
@@ -76,9 +74,7 @@ func (Github) ParseJson(r io.Reader) (fetcher.ReleaseInfo, []fetcher.Artifact, e
 
 func ConvertReleaseInfo(info ReleaseInfo) (fetcher.ReleaseInfo, []fetcher.Artifact) {
 	return fetcher.ReleaseInfo{
-			Version:    info.Version,
-			PreRelease: info.PreRelease,
-			Draft:      info.Draft,
+			Version: info.Version,
 		},
 		ConvertArtifacts(info.Artifacts)
 }

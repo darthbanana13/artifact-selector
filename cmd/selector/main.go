@@ -285,10 +285,8 @@ Default: "no"`,
 				artifactSlice = append(artifactSlice, artifact)
 			}
 			releases := filter.ReleasesInfo{
-				Version:    info.Version,
-				PreRelease: info.PreRelease,
-				Draft:      info.Draft,
-				Artifacts:  artifactSlice,
+				Version:   info.Version,
+				Artifacts: artifactSlice,
 			}
 			mInfo, err := json.Marshal(releases)
 
