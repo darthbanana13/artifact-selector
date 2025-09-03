@@ -34,6 +34,6 @@ func (ovb *OSVerBuilder) makeDecorators() []funcdecorator.FunctionDecorator[conc
 
 func (ovb *OSVerBuilder) Build() (concur.FilterFunc, error) {
 	decorators := ovb.makeDecorators()
-	
+
 	return funcdecorator.DecorateFunction(concur.FilterFunc(osver.FilterArtifact), decorators...), nil
 }

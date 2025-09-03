@@ -22,4 +22,3 @@ func HandleErrDecorator() funcdecorator.FunctionDecorator[concur.FilterFunc] {
 		}
 	}
 }
-

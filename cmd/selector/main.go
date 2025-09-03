@@ -14,16 +14,16 @@ import (
 
 	regexcli "github.com/darthbanana13/artifact-selector/internal/cli/regex"
 	"github.com/darthbanana13/artifact-selector/internal/filter"
-	"github.com/darthbanana13/artifact-selector/internal/filter/concur/convert"
 	archbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/arch/builder"
+	"github.com/darthbanana13/artifact-selector/internal/filter/concur/convert"
 	extfilter "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext"
 	extbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext/builder"
 	contenttypebuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext/metadata/contenttype/builder"
 	extmetadatafilter "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext/metadata/ext"
 	withinsizebuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/extswithinsize/builder"
 	muslbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/musl/builder"
-	osverbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/osver/builder"
 	osbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/os/builder"
+	osverbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/osver/builder"
 	"github.com/darthbanana13/artifact-selector/internal/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/internal/filter/tee"
 

@@ -12,7 +12,8 @@ const (
 	Missing = "missing"
 )
 
-//NOTE: This doesn't work for named versions like "Ubuntu Noble Numbat" or "OpenSuse Tumbleweed". Without resorting to a
+// NOTE: This doesn't work for named versions like "Ubuntu Noble Numbat" or "OpenSuse Tumbleweed". Without resorting to a
+//
 //	maintenance heavy list of named versions, using a user-defined regex or automatically parsing /etc/os-release for the
 //	version name would be the best possible alternative
 func FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
