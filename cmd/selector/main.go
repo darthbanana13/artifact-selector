@@ -14,14 +14,15 @@ import (
 
 	regexcli "github.com/darthbanana13/artifact-selector/internal/cli/regex"
 	"github.com/darthbanana13/artifact-selector/internal/filter"
-	archbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/arch/builder"
 	"github.com/darthbanana13/artifact-selector/internal/filter/concur/convert"
+	archbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/arch/builder"
 	extfilter "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext"
 	extbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext/builder"
 	contenttypebuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext/metadata/contenttype/builder"
 	extmetadatafilter "github.com/darthbanana13/artifact-selector/internal/filter/concur/ext/metadata/ext"
 	withinsizebuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/extswithinsize/builder"
 	muslbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/musl/builder"
+	osverbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/osver/builder"
 	osbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/os/builder"
 	"github.com/darthbanana13/artifact-selector/internal/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/internal/filter/tee"
@@ -71,6 +72,12 @@ func main() {
 				Aliases: []string{"o"},
 				Value:   "ubuntu",
 				Usage:   "Specify the target OS/Distro. E.g. ubuntu, linux, macos",
+			},
+			&cli.StringFlag{
+				Name:    "os-version",
+				Aliases: []string{"O"},
+				Value:   "24.04",
+				Usage:   "The version of the distro/os that you are targeting",
 			},
 			&cli.BoolFlag{
 				Name:    "musl",
@@ -239,6 +246,15 @@ Default: "no"`,
 				return err
 			}
 			pipe = pipeline.Process(pipe, muslStrategy)
+
+			osVerStrategy, err := osverbuilder.
+				NewOSVerBuilder().
+				WithLogger(logger).
+				Build()
+			if err != nil {
+				return err
+			}
+			pipe = pipeline.Process(pipe, osVerStrategy)
 
 			regexFilters := make([]filter.IFilter, len(cmd.StringSlice("regex")))
 			regexStrategies, err := regexcli.ProcessRegexParams(
