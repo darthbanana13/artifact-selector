@@ -2,9 +2,9 @@ package builder
 
 import (
 	"github.com/darthbanana13/artifact-selector/internal/filter/concur"
-	"github.com/darthbanana13/artifact-selector/internal/filter/concur/osver"
-	"github.com/darthbanana13/artifact-selector/internal/filter/concur/osver/decorator/handleerr"
-	logger "github.com/darthbanana13/artifact-selector/internal/filter/concur/osver/decorator/log"
+	"github.com/darthbanana13/artifact-selector/internal/filter/concur/os/metadata/osver"
+	"github.com/darthbanana13/artifact-selector/internal/filter/concur/os/metadata/osver/decorator/handleerr"
+	logger "github.com/darthbanana13/artifact-selector/internal/filter/concur/os/metadata/osver/decorator/log"
 	"github.com/darthbanana13/artifact-selector/internal/funcdecorator"
 	"github.com/darthbanana13/artifact-selector/internal/log"
 )

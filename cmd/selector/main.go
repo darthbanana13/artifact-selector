@@ -23,7 +23,7 @@ import (
 	withinsizebuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/extswithinsize/builder"
 	muslbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/musl/builder"
 	osbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/os/builder"
-	osverbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/osver/builder"
+	osverbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/os/metadata/osver/builder"
 	"github.com/darthbanana13/artifact-selector/internal/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/internal/filter/tee"
 

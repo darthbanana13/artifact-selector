@@ -6,7 +6,7 @@ import (
 	"github.com/darthbanana13/artifact-selector/internal/filter"
 	"github.com/darthbanana13/artifact-selector/internal/filter/concur"
 	"github.com/darthbanana13/artifact-selector/internal/filter/concur/os"
-	"github.com/darthbanana13/artifact-selector/internal/filter/concur/osver"
+	"github.com/darthbanana13/artifact-selector/internal/filter/concur/os/metadata/osver"
 	"github.com/darthbanana13/artifact-selector/internal/funcdecorator"
 )
 
