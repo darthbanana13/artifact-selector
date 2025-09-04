@@ -26,6 +26,9 @@ import (
 	osverbuilder "github.com/darthbanana13/artifact-selector/internal/filter/concur/os/metadata/osver/builder"
 	"github.com/darthbanana13/artifact-selector/internal/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/internal/filter/tee"
+	"github.com/darthbanana13/artifact-selector/internal/rank"
+	extrank "github.com/darthbanana13/artifact-selector/internal/rank/ext"
+	"github.com/darthbanana13/artifact-selector/internal/rank/sort"
 
 	altsrc "github.com/urfave/cli-altsrc/v3"
 	jsonconfig "github.com/urfave/cli-altsrc/v3/json"
@@ -296,10 +299,13 @@ Default: "no"`,
 			}
 			pipe = pipeline.Process(pipe, binWithinSizeStrategy)
 
-			artifactSlice := make([]filter.Artifact, 0)
-			for artifact := range pipe {
-				artifactSlice = append(artifactSlice, artifact)
-			}
+			pipe = rank.InitRank(pipe)
+
+			var extRank rank.RankFunc
+			extRank = extrank.NewExt(strings.Split(cmd.String("extension"), ",")).RankArtifact
+			pipe = extRank.Rank(pipe, 0)
+
+			artifactSlice := sort.SortChan(pipe)
 			releases := filter.ReleasesInfo{
 				Version:   info.Version,
 				Artifacts: artifactSlice,

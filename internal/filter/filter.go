@@ -12,8 +12,8 @@ const (
 )
 
 type ReleasesInfo struct {
-	Version    string
-	Artifacts  []Artifact
+	Version   string
+	Artifacts []Artifact
 }
 
 type Artifact struct {
