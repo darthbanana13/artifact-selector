@@ -59,7 +59,7 @@ func NewOS(targetOS string) (IOS, error) {
 func (o *OS) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	i := IndexInAliases(o.targetRegexes, artifact.FileName)
 	if i >= 0 {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", o.targetAliases[i], "os-index", i)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", o.targetAliases[i], "os-index", len(o.targetAliases) - i)
 		return artifact, true
 	} else if DoesntMatchAliases(o.excludedRegexes, artifact.FileName) {
 		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", Missing, "os-index", i)

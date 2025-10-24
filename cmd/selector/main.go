@@ -28,6 +28,7 @@ import (
 	"github.com/darthbanana13/artifact-selector/internal/filter/tee"
 	"github.com/darthbanana13/artifact-selector/internal/rank"
 	extrank "github.com/darthbanana13/artifact-selector/internal/rank/ext"
+	osrank "github.com/darthbanana13/artifact-selector/internal/rank/os"
 	"github.com/darthbanana13/artifact-selector/internal/rank/sort"
 
 	altsrc "github.com/urfave/cli-altsrc/v3"
@@ -303,7 +304,11 @@ Default: "no"`,
 
 			var extRank rank.RankFunc
 			extRank = extrank.NewExt(strings.Split(cmd.String("extension"), ",")).RankArtifact
-			pipe = extRank.Rank(pipe, 0)
+			pipe = extRank.Rank(pipe, 1)
+
+			var osRank rank.RankFunc
+			osRank = osrank.NewOS().RankArtifact
+			pipe = osRank.Rank(pipe, 0)
 
 			artifactSlice := sort.SortChan(pipe)
 			releases := filter.ReleasesInfo{
