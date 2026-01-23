@@ -8,6 +8,10 @@ import (
 	"github.com/darthbanana13/artifact-selector/internal/filter/separator"
 )
 
+const (
+	MetadataIndex = "musl"
+)
+
 type Musl struct {
 	Filter bool //if the artifact that contains musl should be filtered out or not
 }
@@ -26,7 +30,7 @@ func NewMusl(filter bool) (IMusl, error) {
 
 func (m *Musl) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	match := reg.MatchString(strings.ToLower(artifact.FileName))
-	artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "musl", match)
+	artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataIndex, match)
 	if m.Filter {
 		return artifact, !match
 	}

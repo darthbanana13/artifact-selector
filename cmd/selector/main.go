@@ -30,6 +30,7 @@ import (
 	archrank "github.com/darthbanana13/artifact-selector/internal/rank/arch"
 	contenttyperank "github.com/darthbanana13/artifact-selector/internal/rank/contenttype"
 	extrank "github.com/darthbanana13/artifact-selector/internal/rank/ext"
+	muslrank "github.com/darthbanana13/artifact-selector/internal/rank/musl"
 	osrank "github.com/darthbanana13/artifact-selector/internal/rank/os"
 	"github.com/darthbanana13/artifact-selector/internal/rank/sort"
 
@@ -89,6 +90,11 @@ func main() {
 				Name:    "musl",
 				Aliases: []string{"m"},
 				Usage:   "Exclude musl artifacts",
+			},
+			&cli.BoolFlag{
+				Name:    "musl-prefer",
+				Aliases: []string{"M"},
+				Usage:   "Will prefer musl over non-musl artifacts",
 			},
 			&cli.BoolFlag{
 				Name:    "verbose",
@@ -306,19 +312,27 @@ Default: "no"`,
 
 			var extRank rank.RankFunc
 			extRank = extrank.NewExt(strings.Split(cmd.String("extension"), ",")).RankArtifact
-			pipe = extRank.Rank(pipe, 3)
+			pipe = extRank.Rank(pipe, 4)
 
 			var archRank rank.RankFunc
 			archRank = archrank.NewArch().RankArtifact
-			pipe = archRank.Rank(pipe, 2)
+			pipe = archRank.Rank(pipe, 3)
 
 			var osRank rank.RankFunc
 			osRank = osrank.NewOS().RankArtifact
-			pipe = osRank.Rank(pipe, 1)
+			pipe = osRank.Rank(pipe, 2)
 
 			var contentTypeRank rank.RankFunc
 			contentTypeRank = contenttyperank.NewContentType().RankArtifact
-			pipe = contentTypeRank.Rank(pipe, 0)
+			pipe = contentTypeRank.Rank(pipe, 1)
+
+			var muslRank rank.RankFunc
+			if cmd.Bool("musl-prefer") {
+				muslRank = muslrank.NewPreferMusl().RankArtifact
+			} else {
+				muslRank = muslrank.NewDislikeMusl().RankArtifact
+			}
+			pipe = muslRank.Rank(pipe, 0)
 
 			artifactSlice := sort.SortChan(pipe)
 			releases := filter.ReleasesInfo{
