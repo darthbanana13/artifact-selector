@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	Missing  = "missing"
-	Unknown  = "unknown"
-	Mismatch = "mismatch"
-	Match    = "match"
+	Missing       = "missing"
+	Unknown       = "unknown"
+	Mismatch      = "mismatch"
+	Match         = "match"
+	MetadataIndex = "content-type"
 )
 
 var ExtensionContentType = map[string][]string{
@@ -43,16 +44,16 @@ var ExtensionContentType = map[string][]string{
 
 func FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	if slices.Contains([]string{"", "raw"}, artifact.ContentType) {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "content-type", Missing)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataIndex, Missing)
 		return artifact, true
 	}
 	vals, ok := ExtensionContentType[artifact.Metadata["ext"].(string)]
 	if !ok {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "content-type", Unknown)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataIndex, Unknown)
 	} else if !slices.Contains(vals, artifact.ContentType) {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "content-type", Mismatch)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataIndex, Mismatch)
 	} else {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "content-type", Match)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataIndex, Match)
 	}
 	return artifact, true
 }

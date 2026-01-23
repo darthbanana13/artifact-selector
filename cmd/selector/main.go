@@ -28,6 +28,7 @@ import (
 	"github.com/darthbanana13/artifact-selector/internal/filter/tee"
 	"github.com/darthbanana13/artifact-selector/internal/rank"
 	archrank "github.com/darthbanana13/artifact-selector/internal/rank/arch"
+	contenttyperank "github.com/darthbanana13/artifact-selector/internal/rank/contenttype"
 	extrank "github.com/darthbanana13/artifact-selector/internal/rank/ext"
 	osrank "github.com/darthbanana13/artifact-selector/internal/rank/os"
 	"github.com/darthbanana13/artifact-selector/internal/rank/sort"
@@ -104,8 +105,8 @@ func main() {
 			},
 			&cli.StringSliceFlag{
 				Name:    "regex-meta",
-				Aliases: []string{"M"},
-				Usage:   "Give a name to the regex match metadata key",
+				Aliases: []string{"I"},
+				Usage:   "Give a name to the regex match metadata index name",
 			},
 			&cli.StringSliceFlag{
 				Name:    "regex-lower",
@@ -305,15 +306,19 @@ Default: "no"`,
 
 			var extRank rank.RankFunc
 			extRank = extrank.NewExt(strings.Split(cmd.String("extension"), ",")).RankArtifact
-			pipe = extRank.Rank(pipe, 2)
+			pipe = extRank.Rank(pipe, 3)
 
 			var archRank rank.RankFunc
 			archRank = archrank.NewArch().RankArtifact
-			pipe = archRank.Rank(pipe, 1)
+			pipe = archRank.Rank(pipe, 2)
 
 			var osRank rank.RankFunc
 			osRank = osrank.NewOS().RankArtifact
-			pipe = osRank.Rank(pipe, 0)
+			pipe = osRank.Rank(pipe, 1)
+
+			var contentTypeRank rank.RankFunc
+			contentTypeRank = contenttyperank.NewContentType().RankArtifact
+			pipe = contentTypeRank.Rank(pipe, 0)
 
 			artifactSlice := sort.SortChan(pipe)
 			releases := filter.ReleasesInfo{
