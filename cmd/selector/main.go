@@ -27,6 +27,7 @@ import (
 	"github.com/darthbanana13/artifact-selector/internal/filter/pipeline"
 	"github.com/darthbanana13/artifact-selector/internal/filter/tee"
 	"github.com/darthbanana13/artifact-selector/internal/rank"
+	archrank "github.com/darthbanana13/artifact-selector/internal/rank/arch"
 	extrank "github.com/darthbanana13/artifact-selector/internal/rank/ext"
 	osrank "github.com/darthbanana13/artifact-selector/internal/rank/os"
 	"github.com/darthbanana13/artifact-selector/internal/rank/sort"
@@ -304,7 +305,11 @@ Default: "no"`,
 
 			var extRank rank.RankFunc
 			extRank = extrank.NewExt(strings.Split(cmd.String("extension"), ",")).RankArtifact
-			pipe = extRank.Rank(pipe, 1)
+			pipe = extRank.Rank(pipe, 2)
+
+			var archRank rank.RankFunc
+			archRank = archrank.NewArch().RankArtifact
+			pipe = archRank.Rank(pipe, 1)
 
 			var osRank rank.RankFunc
 			osRank = osrank.NewOS().RankArtifact
