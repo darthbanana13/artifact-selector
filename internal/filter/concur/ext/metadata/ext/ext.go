@@ -18,7 +18,7 @@ func NewExt(targetExts []string) (ext.IExt, error) {
 }
 
 func (e *Ext) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
-	if slices.Contains(e.TargetExts, artifact.Metadata["ext"].(string)) {
+	if slices.Contains(e.TargetExts, artifact.Metadata[ext.MetadataKey].(string)) {
 		return artifact, true
 	}
 	return artifact, false

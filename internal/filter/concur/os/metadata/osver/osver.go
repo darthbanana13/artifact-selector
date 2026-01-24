@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	Missing = "missing"
+	Missing     = "missing"
+	MetadataKey = "os-ver"
 )
 
 // NOTE: This doesn't work for named versions like "Ubuntu Noble Numbat" or "OpenSuse Tumbleweed". Without resorting to a
@@ -21,9 +22,9 @@ func FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	r := regexp.MustCompile(fmt.Sprintf("[_\\-\\. ]%s[_\\-\\. ]?([\\d\\.].*\\d)", osAlias))
 	matches := r.FindStringSubmatch(strings.ToLower(artifact.FileName))
 	if len(matches) == 2 {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os-ver", matches[1])
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataKey, matches[1])
 	} else {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os-ver", Missing)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataKey, Missing)
 	}
 	return artifact, true
 }

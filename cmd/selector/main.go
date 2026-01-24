@@ -111,8 +111,8 @@ func main() {
 			},
 			&cli.StringSliceFlag{
 				Name:    "regex-meta",
-				Aliases: []string{"I"},
-				Usage:   "Give a name to the regex match metadata index name",
+				Aliases: []string{"K"},
+				Usage:   "Give a name to the regex match metadata key name",
 			},
 			&cli.StringSliceFlag{
 				Name:    "regex-lower",

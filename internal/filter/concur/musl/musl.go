@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	MetadataIndex = "musl"
+	MetadataKey = "musl"
 )
 
 type Musl struct {
@@ -30,7 +30,7 @@ func NewMusl(filter bool) (IMusl, error) {
 
 func (m *Musl) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	match := reg.MatchString(strings.ToLower(artifact.FileName))
-	artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataIndex, match)
+	artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataKey, match)
 	if m.Filter {
 		return artifact, !match
 	}

@@ -27,6 +27,7 @@ import (
 
 const (
 	LinuxBinary = "LINUXBINARY"
+	MetadataKey = "ext"
 )
 
 type Ext struct {
@@ -47,7 +48,7 @@ func (e *Ext) SetTargetExts(targetExts []string) error {
 func (e *Ext) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	for _, ext := range e.TargetExts {
 		if HasExtension(artifact.FileName, artifact.ContentType, ext) {
-			artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "ext", ext)
+			artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataKey, ext)
 			return artifact, true
 		}
 	}

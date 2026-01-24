@@ -10,7 +10,9 @@ import (
 )
 
 const (
-	Missing = "missing"
+	Missing            = "missing"
+	MetadataOSNameKey  = "os"
+	MetadataOSIndexKey = "os-index"
 )
 
 var OSMap = map[string][]string{
@@ -59,10 +61,10 @@ func NewOS(targetOS string) (IOS, error) {
 func (o *OS) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 	i := IndexInAliases(o.targetRegexes, artifact.FileName)
 	if i >= 0 {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", o.targetAliases[i], "os-index", len(o.targetAliases)-i)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataOSNameKey, o.targetAliases[i], MetadataOSIndexKey, len(o.targetAliases)-i)
 		return artifact, true
 	} else if DoesntMatchAliases(o.excludedRegexes, artifact.FileName) {
-		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, "os", Missing, "os-index", i)
+		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataOSNameKey, Missing, MetadataOSIndexKey, i)
 		return artifact, true
 	}
 	return artifact, false

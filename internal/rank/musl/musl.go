@@ -24,7 +24,7 @@ func NewMusl(preferMusl bool) *Musl {
 }
 
 func (m *Musl) RankArtifact(artifact filter.Artifact) uint {
-	if artifact.Metadata[musl.MetadataIndex].(bool) == m.PreferMusl {
+	if artifact.Metadata[musl.MetadataKey].(bool) == m.PreferMusl {
 		return 2
 	}
 	return 1

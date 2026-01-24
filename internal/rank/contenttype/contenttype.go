@@ -13,7 +13,7 @@ func NewContentType() *ContentType {
 }
 
 func (c *ContentType) RankArtifact(artifact filter.Artifact) uint {
-	switch artifact.Metadata[contenttype.MetadataIndex].(string) {
+	switch artifact.Metadata[contenttype.MetadataKey].(string) {
 	case contenttype.Match:
 		return 3
 	case contenttype.Unknown, contenttype.Missing:

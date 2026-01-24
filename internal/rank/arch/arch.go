@@ -13,7 +13,7 @@ func NewArch() *Arch {
 }
 
 func (a *Arch) RankArtifact(artifact filter.Artifact) uint {
-	if artifact.Metadata["arch"].(string) == arch.Exact {
+	if artifact.Metadata[arch.MetadataKey].(string) == arch.Exact {
 		return 2
 	}
 	return 1

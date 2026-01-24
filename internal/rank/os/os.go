@@ -2,6 +2,7 @@ package os
 
 import (
 	"github.com/darthbanana13/artifact-selector/internal/filter"
+	"github.com/darthbanana13/artifact-selector/internal/filter/concur/os"
 )
 
 type OS struct {
@@ -13,5 +14,5 @@ func NewOS() *OS {
 }
 
 func (o *OS) RankArtifact(artifact filter.Artifact) uint {
-	return uint(artifact.Metadata["os-index"].(int))
+	return uint(artifact.Metadata[os.MetadataOSIndexKey].(int))
 }
