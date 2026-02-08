@@ -32,6 +32,7 @@ import (
 	extrank "github.com/darthbanana13/artifact-selector/internal/rank/ext"
 	muslrank "github.com/darthbanana13/artifact-selector/internal/rank/musl"
 	osrank "github.com/darthbanana13/artifact-selector/internal/rank/os"
+	osverrank "github.com/darthbanana13/artifact-selector/internal/rank/osver"
 	"github.com/darthbanana13/artifact-selector/internal/rank/sort"
 
 	altsrc "github.com/urfave/cli-altsrc/v3"
@@ -312,15 +313,19 @@ Default: "no"`,
 
 			var extRank rank.RankFunc
 			extRank = extrank.NewExt(strings.Split(cmd.String("extension"), ",")).RankArtifact
-			pipe = extRank.Rank(pipe, 4)
+			pipe = extRank.Rank(pipe, 5)
 
 			var archRank rank.RankFunc
 			archRank = archrank.NewArch().RankArtifact
-			pipe = archRank.Rank(pipe, 3)
+			pipe = archRank.Rank(pipe, 4)
 
 			var osRank rank.RankFunc
 			osRank = osrank.NewOS().RankArtifact
-			pipe = osRank.Rank(pipe, 2)
+			pipe = osRank.Rank(pipe, 3)
+
+			var osVerRank rank.RankFunc
+			osVerRank = osverrank.NewOSVer(cmd.String("os-version")).RankArtifact
+			pipe = osVerRank.Rank(pipe, 2)
 
 			var contentTypeRank rank.RankFunc
 			contentTypeRank = contenttyperank.NewContentType().RankArtifact
