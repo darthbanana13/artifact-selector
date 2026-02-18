@@ -1,5 +1,8 @@
 .PHONY: run test ext
 
+build:
+	scripts/build.sh
+
 run:
 	@scripts/run_app.sh $(ARGS)
 
