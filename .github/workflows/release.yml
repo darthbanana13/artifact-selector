@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          ext=""
+          if [ "$GOOS" = "windows" ]; then ext=".exe"; fi
+          go build -o artifact-selector-${GOOS}-${GOARCH}${ext} cmd/selector/main.go
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-selector-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: artifact-selector-*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            prev_tag=$(git tag --sort=-v:refname | grep -v "^latest$" | sed -n '2p')
+          else
+            prev_tag=$(git tag --sort=-v:refname | grep -v "^latest$" | head -n1)
+          fi
+          if [ -n "$prev_tag" ]; then
+            log=$(git log --pretty=format:"- %s (%h)" ${prev_tag}..HEAD)
+          else
+            log=$(git log --pretty=format:"- %s (%h)")
+          fi
+          {
+            echo "body<<EOF"
+            echo "$log"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Stable release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" dist/* \
+            --title "${{ github.ref_name }}" \
+            --notes "${{ steps.changelog.outputs.body }}"
+
+      - name: Dev release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag -f latest
+          git push -f origin latest
+          gh release delete latest --yes || true
+          gh release create latest dist/* \
+            --title "Development Build" \
+            --notes "${{ steps.changelog.outputs.body }}" \
+            --prerelease
