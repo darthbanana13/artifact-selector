@@ -25,6 +25,7 @@ var ArchMap = map[string][]string{
 	"mips":      {"mipsel", "mipsr6el", "mipsr6le", "mipsr6", "mips32", "mips64le", "mips64r6le", "mips64r6", "mips64", "mipsle", "mips"},
 	"sparc":     {"sparc64", "sparc"},
 	"ia64":      {"ia64"},
+	"m68k":			 {"m68k"},
 }
 
 type Arch struct {

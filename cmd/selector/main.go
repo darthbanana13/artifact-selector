@@ -287,7 +287,7 @@ Default: "no"`,
 
 			withinSizeBuilder := withinsizebuilder.NewWithinSizeFilterBuilder().
 				WithLogger(logger).
-				WithPercentage(20)
+				WithPercentage(30)
 
 			compressedWithinSizeStrategy, err := withinSizeBuilder.
 				WithExts(compressedExtensions).
