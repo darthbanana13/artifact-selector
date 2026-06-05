@@ -14,5 +14,9 @@ func NewOS() *OS {
 }
 
 func (o *OS) RankArtifact(artifact filter.Artifact) uint {
-	return uint(artifact.Metadata[os.MetadataOSIndexKey].(int))
+	osIndex := artifact.Metadata[os.MetadataOSIndexKey].(int)
+	if osIndex < 0 {
+		return uint(0)
+	}
+	return uint(osIndex)
 }
