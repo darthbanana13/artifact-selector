@@ -66,7 +66,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "extension",
 				Aliases: []string{"e"},
-				Value:   "deb,,appimage,tar.zst,tbz,tar.gz,tar.xz",
+				Value:   "deb,LINUXBINARY,appimage,tar.zst,tbz,tar.gz,tar.xz",
 				Usage:   "List the extension preference in a comma separated list. E.g. 'deb,appimage,LINUXBINARY'",
 			},
 			&cli.StringFlag{
