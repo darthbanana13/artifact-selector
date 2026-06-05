@@ -1,11 +1,24 @@
 package arch
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/darthbanana13/artifact-selector/internal/filter"
 	"github.com/darthbanana13/artifact-selector/internal/filter/separator"
 )
+
+var archRegexCache = make(map[string][]*regexp.Regexp)
+
+func init() {
+	for arch, aliases := range ArchMap {
+		regexes := make([]*regexp.Regexp, 0, len(aliases))
+		for _, alias := range aliases {
+			regexes = append(regexes, separator.MakeAliasRegex(alias))
+		}
+		archRegexCache[arch] = regexes
+	}
+}
 
 const (
 	Exact       = "exact"
@@ -43,35 +56,33 @@ func NewArch(targetArch string) (IArch, error) {
 }
 
 func (a *Arch) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
-	if MatchesArch(artifact.FileName, a.TargetArch) {
+	fileNameLower := strings.ToLower(artifact.FileName)
+	if MatchesArch(fileNameLower, a.TargetArch) {
 		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataKey, Exact)
 		return artifact, true
-	} else if a.TargetArch == "x86_64" && !MatchesOtherArch(artifact.FileName, a.TargetArch) {
+	} else if a.TargetArch == "x86_64" && !MatchesOtherArch(fileNameLower, a.TargetArch) {
 		artifact.Metadata, _ = filter.AddMetadata(artifact.Metadata, MetadataKey, Missing)
 		return artifact, true
 	}
 	return artifact, false
 }
 
-// TODO: Cache all the regexes for better performance
-func MatchesArch(fileName string, targetArch string) bool {
-	for _, alias := range ArchMap[targetArch] {
-		r := separator.MakeAliasRegex(alias)
-		if r.MatchString(strings.ToLower(fileName)) {
+func MatchesArch(fileNameLower string, targetArch string) bool {
+	for _, r := range archRegexCache[targetArch] {
+		if r.MatchString(fileNameLower) {
 			return true
 		}
 	}
 	return false
 }
 
-func MatchesOtherArch(fileName string, besidesArch string) bool {
-	for arch, aliases := range ArchMap {
+func MatchesOtherArch(fileNameLower string, besidesArch string) bool {
+	for arch, regexes := range archRegexCache {
 		if arch == besidesArch {
 			continue
 		}
-		for _, alias := range aliases {
-			r := separator.MakeAliasRegex(alias)
-			if r.MatchString(strings.ToLower(fileName)) {
+		for _, r := range regexes {
+			if r.MatchString(fileNameLower) {
 				return true
 			}
 		}
