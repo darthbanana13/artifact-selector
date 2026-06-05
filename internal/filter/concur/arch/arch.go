@@ -35,7 +35,7 @@ var ArchMap = map[string][]string{
 	"loongarch": {"loongarch64le", "loongarch64be", "loongarch64", "loongarch"},
 	"s390":      {"s390x", "s390"},
 	"powerpc":   {"powerpc64", "powerpc", "ppc64le", "ppc64el", "ppc64"},
-	"mips":      {"mipsel", "mipsr6el", "mipsr6le", "mipsr6", "mips32", "mips64le", "mips64r6le", "mips64r6", "mips64", "mipsle", "mips"},
+	"mips":      {"mipsel", "mipsr6el", "mipsr6le", "mips64el", "mipsr6", "mips32", "mips64le", "mips64r6le", "mips64r6el", "mips64r6", "mips64", "mipsle", "mips"},
 	"sparc":     {"sparc64", "sparc"},
 	"ia64":      {"ia64"},
 	"m68k":			 {"m68k"},
