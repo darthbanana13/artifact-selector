@@ -39,7 +39,7 @@ var ExtensionContentType = map[string][]string{
 	"apk":            {"application/vnd.android.package-archive"},
 	"dmg":            {"application/x-apple-diskimage"},
 	"pkg":            {"application/octet-stream"},
-	ext.LinuxBinary:  {"application/octet-stream"},
+	ext.Binary:  {"application/octet-stream"},
 }
 
 func FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {

@@ -26,7 +26,7 @@ import (
 // }
 
 const (
-	LinuxBinary = "LINUXBINARY"
+	Binary = "BINARY"
 	MetadataKey = "ext"
 )
 
@@ -56,7 +56,7 @@ func (e *Ext) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
 }
 
 func HasExtension(fileName, contentType, ext string) bool {
-	if ext == LinuxBinary {
+	if ext == Binary {
 		return IsLinuxExecutable(fileName, contentType)
 	}
 	return DoesEndWithExtension(fileName, ext)

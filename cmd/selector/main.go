@@ -66,8 +66,8 @@ func main() {
 			&cli.StringFlag{
 				Name:    "extension",
 				Aliases: []string{"e"},
-				Value:   "deb,LINUXBINARY,appimage,tar.zst,tbz,tar.gz,tar.xz",
-				Usage:   "List the extension preference in a comma separated list. E.g. 'deb,appimage,LINUXBINARY'",
+				Value:   "deb,BINARY,appimage,tar.zst,tbz,tar.gz,tar.xz",
+				Usage:   "List the extension preference in a comma separated list. E.g. 'deb,appimage,BINARY'",
 			},
 			&cli.StringFlag{
 				Name:    "arch",
@@ -201,7 +201,7 @@ Default: "no"`,
 			}
 
 			//TODO: Test more if including appimage is a good idea
-			binaryExtensions := []string{extfilter.LinuxBinary, "appimage"}
+			binaryExtensions := []string{extfilter.Binary, "appimage"}
 			//NOTE: In case we're not sure if the filtered artifacts are actually a binary, and there is no actual binary in the
 			//	artifacts list, we can add compressed extensions for calculating the max. This way, if there is something silly
 			//	like a txt file renamed to a random extension, because it's a lot smaller than the artifacts we know pretty sure
@@ -300,7 +300,7 @@ Default: "no"`,
 			pipe = pipeline.Process(pipe, compressedWithinSizeStrategy)
 
 			binWithinSizeStrategy, err := withinSizeBuilder.
-				WithExts([]string{extfilter.LinuxBinary}).
+				WithExts([]string{extfilter.Binary}).
 				WithLoggerName("Binary Filter").
 				WithChannelMax(binExtractor).
 				Build()
