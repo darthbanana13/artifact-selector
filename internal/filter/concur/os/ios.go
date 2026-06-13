@@ -5,6 +5,9 @@ import (
 )
 
 type IOS interface {
+	TargetOS() string
+	TargetAliases() []string
+	ExcludedAliases() []string
 	SetTargetOS(string) error
 	FilterArtifact(filter.Artifact) (filter.Artifact, bool)
 }

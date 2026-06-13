@@ -11,7 +11,7 @@ import (
 )
 
 type HandleErrDecorator struct {
-	OS os.IOS
+	os.IOS
 }
 
 func HandleErrConstructorDecorator() funcdecorator.FunctionDecorator[decorator.Constructor] {
@@ -35,19 +35,19 @@ func NewHandleErrDecorator(os os.IOS) (os.IOS, error) {
 		return nil, decorator.NilOSDecoratorErr(errors.New("OSFilter/IOS cannot be nil"))
 	}
 	return &HandleErrDecorator{
-		OS: os,
+		IOS: os,
 	}, nil
 }
 
 func (hed *HandleErrDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
-	return hed.OS.FilterArtifact(artifact)
+	return hed.IOS.FilterArtifact(artifact)
 }
 
 func (hed *HandleErrDecorator) SetTargetOS(targetOS string) error {
 	if err := CheckValidOS(targetOS); err != nil {
 		return err
 	}
-	return hed.OS.SetTargetOS(targetOS)
+	return hed.IOS.SetTargetOS(targetOS)
 }
 
 func CheckValidOS(osName string) error {

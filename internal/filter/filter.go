@@ -26,10 +26,10 @@ type IFilter interface {
 }
 
 func AddMetadata(metadata map[string]any, valKeys ...any) (map[string]any, error) {
-	var newMetadata = maps.Clone(metadata)
 	if len(valKeys)%2 != 0 {
-		return newMetadata, errors.New("metadata key-value pairs must be even")
+		return metadata, errors.New("metadata key-value pairs must be even")
 	}
+	var newMetadata = maps.Clone(metadata)
 	for i := 0; i < len(valKeys)-1; i += 2 {
 		key, ok := valKeys[i].(string)
 		if ok == false {
@@ -46,4 +46,14 @@ func GetStringMetadata(metadata map[string]any, key string) string {
 		return None
 	}
 	return val.(string)
+}
+
+func (a *Artifact) AddMetadata(valKeys ...any) error {
+	metadata, ok := AddMetadata(a.Metadata, valKeys...)
+	a.Metadata = metadata
+	return ok
+}
+
+func (a *Artifact) GetStringMetadata(key string) string {
+	return GetStringMetadata(a.Metadata, key)
 }

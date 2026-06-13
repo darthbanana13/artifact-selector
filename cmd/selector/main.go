@@ -233,6 +233,7 @@ Default: "no"`,
 
 			osStrategy, err := osbuilder.
 				NewOSBuilder().
+				WithExtOS().
 				WithLogger(logger).
 				WithOS(cmd.String("os")).
 				Build()

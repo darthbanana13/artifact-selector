@@ -52,6 +52,14 @@ func (o *OS) TargetOS() string {
 	return o.targetOS
 }
 
+func (o *OS) TargetAliases() []string {
+	return o.targetAliases
+}
+
+func (o *OS) ExcludedAliases() []string {
+	return o.excludedAliases
+}
+
 func NewOS(targetOS string) (IOS, error) {
 	o := &OS{}
 	err := o.SetTargetOS(targetOS)

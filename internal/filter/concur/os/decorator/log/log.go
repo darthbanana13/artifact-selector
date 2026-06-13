@@ -11,7 +11,7 @@ import (
 )
 
 type LogDecorator struct {
-	OS os.IOS
+	os.IOS
 	L  logging.ILogger
 }
 
@@ -37,13 +37,13 @@ func NewLogDecorator(osf os.IOS, logger logging.ILogger) (os.IOS, error) {
 		return nil, decorator.NilOSDecoratorErr(errors.New("Logger can not be nil!"))
 	}
 	return &LogDecorator{
-		OS: osf,
+		IOS: osf,
 		L:  logger,
 	}, nil
 }
 
 func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifact, bool) {
-	filteredArtifact, keep := ld.OS.FilterArtifact(artifact)
+	filteredArtifact, keep := ld.IOS.FilterArtifact(artifact)
 	ld.L.Debug("OS filtered",
 		"Artifact", filteredArtifact,
 		"Keep", keep,
@@ -54,5 +54,5 @@ func (ld *LogDecorator) FilterArtifact(artifact filter.Artifact) (filter.Artifac
 
 func (ld *LogDecorator) SetTargetOS(targetOS string) error {
 	ld.L.Debug("Setting", "Target OS", targetOS)
-	return ld.OS.SetTargetOS(targetOS)
+	return ld.IOS.SetTargetOS(targetOS)
 }

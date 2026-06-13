@@ -18,6 +18,6 @@ func NewExt(targetExts []string) *Ext {
 }
 
 func (e *Ext) RankArtifact(artifact filter.Artifact) uint {
-	index := slices.Index(e.TargetExts, artifact.Metadata[ext.MetadataKey].(string))
+	index := slices.Index(e.TargetExts, artifact.GetStringMetadata(ext.MetadataKey))
 	return uint(len(e.TargetExts) - index)
 }
